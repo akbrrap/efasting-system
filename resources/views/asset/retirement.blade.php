@@ -51,7 +51,7 @@
         <label for="retKategori" class="form-label-modern">Kategori Database <span class="req">*</span></label>
         <select id="retKategori" name="kategori_db" class="form-control-modern" onchange="resetPencarianRet()">
           <option value="INTERNAL" selected>🏭 Internal Database (Pabrik & Kantor)</option>
-          <option value="EXTERNAL">🚚 External Database (Vendor & Distributor)</option>
+          <option value="EXTERNAL">🚚 External Database (Agen & Distributor Channel INN dan Reguler)</option>
         </select>
       </div>
 

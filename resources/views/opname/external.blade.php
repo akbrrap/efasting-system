@@ -9,9 +9,9 @@
     <div class="card-header-clean">
       <div>
         <h2 class="card-title-text">
-          <i class="fa-solid fa-truck-ramp-box" style="color: var(--accent-600);"></i> Form Stock Opname Eksternal (Vendor & Distributor)
+          <i class="fa-solid fa-truck-ramp-box" style="color: var(--accent-600);"></i> Form Stock Opname Eksternal (Agen & Distributor Channel INN dan Reguler)
         </h2>
-        <p class="card-subtitle-text">Verifikasi fisik aset di lokasi pihak ketiga (Vendor, Distributor, Gudang Eksternal) beserta validasi kode entitas lokasi</p>
+        <p class="card-subtitle-text">Verifikasi fisik aset di lokasi pihak ketiga (Agen & Distributor Channel INN dan Reguler) beserta validasi kode entitas lokasi</p>
       </div>
       <div style="display: flex; align-items: center; gap: 8px;">
         <span class="badge-pill badge-warning">

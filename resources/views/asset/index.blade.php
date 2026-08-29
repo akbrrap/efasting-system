@@ -31,7 +31,7 @@
             <i class="fa-solid fa-industry"></i> Internal (Pabrik)
           </button>
           <button type="button" id="tabExternal" class="btn-enterprise" style="padding: 6px 14px; font-size: 12.5px; background: transparent; color: var(--slate-500); box-shadow: none;" onclick="setKategori('EXTERNAL')">
-            <i class="fa-solid fa-truck-fast"></i> Eksternal (Vendor)
+            <i class="fa-solid fa-truck-fast"></i> Eksternal (Agen & Distributor)
           </button>
           <input type="hidden" id="masterAssetKategori" value="{{ $kategori ?? 'INTERNAL' }}">
         </div>

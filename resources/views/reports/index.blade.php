@@ -23,7 +23,7 @@
         <label for="exportKategori" class="form-label-modern">Kategori Laporan yang Diekspor <span class="req">*</span></label>
         <select id="exportKategori" name="kategori" class="form-control-modern" required>
           <option value="INTERNAL" selected>🏭 Hasil Opname Internal Assets (Pabrik & Kantor)</option>
-          <option value="EXTERNAL">🚚 Hasil Opname External Assets (Vendor & Distributor)</option>
+          <option value="EXTERNAL">🚚 Hasil Opname External Assets (Agen & Distributor Channel INN dan Reguler)</option>
         </select>
       </div>
 

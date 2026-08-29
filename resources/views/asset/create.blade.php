@@ -52,7 +52,7 @@
         <select id="addKategori" name="kategori_db" class="form-control-modern" required>
           <option value="" disabled selected>Pilih Kategori Database...</option>
           <option value="INTERNAL">🏭 Internal Database (Pabrik & Kantor Perusahaan)</option>
-          <option value="EXTERNAL">🚚 External Database (Vendor & Gudang Distributor)</option>
+          <option value="EXTERNAL">🚚 External Database (Agen & Distributor Channel INN dan Reguler)</option>
         </select>
       </div>
 
