@@ -3,45 +3,55 @@
 namespace App\Services;
 
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class FileStorageService
 {
     /**
-     * Nama disk penyimpanan yang aktif (public / supabase / s3).
+     * Nama disk penyimpanan yang aktif (public / local).
      */
     protected string $disk;
+    protected GoogleDriveService $googleDrive;
 
-    public function __construct()
+    public function __construct(GoogleDriveService $googleDrive)
     {
         $this->disk = config('filesystems.opname_disk', env('OPNAME_STORAGE_DISK', 'public'));
+        $this->googleDrive = $googleDrive;
     }
 
     /**
-     * Simpan file foto dari Form Request (UploadedFile) atau Base64 String ke Storage Laravel.
+     * Simpan file foto dari Form Request (UploadedFile) atau Base64 String ke Storage Laravel
+     * dan lakukan sinkronisasi otomatis ke Google Drive jika terkonfigurasi.
      *
      * @param UploadedFile|string|null $fileData
      * @param string $prefix
+     * @param string|null $type 'fisik' atau 'tagging'
      * @return string|null Public URL atau Path file tersimpan
      */
-    public function storePhoto(UploadedFile|string|null $fileData, string $prefix = 'photo'): ?string
+    public function storePhoto(UploadedFile|string|null $fileData, string $prefix = 'photo', ?string $type = null): ?string
     {
         if (empty($fileData)) {
             return null;
         }
 
+        // Tentukan tipe foto (fisik / tagging) dari prefix jika tidak dispesifikasikan
+        if (!$type) {
+            $type = (stripos($prefix, 'tag') !== false) ? 'tagging' : 'fisik';
+        }
+
+        $savedPath = null;
+        $fileName = null;
+
         // 1. Jika bertipe UploadedFile dari multipart form request
         if ($fileData instanceof UploadedFile) {
             $extension = $fileData->getClientOriginalExtension() ?: 'jpg';
             $fileName = $prefix . '_' . time() . '_' . Str::random(6) . '.' . $extension;
-            $path = $fileData->storeAs('opname-photos', $fileName, $this->disk);
-
-            return $this->formatDiskUrl($path);
+            $savedPath = $fileData->storeAs('opname-photos', $fileName, $this->disk);
         }
-
         // 2. Jika bertipe string (Base64 atau URL lama)
-        if (is_string($fileData)) {
+        elseif (is_string($fileData)) {
             if (str_starts_with($fileData, 'http://') || str_starts_with($fileData, 'https://') || str_starts_with($fileData, '/storage/')) {
                 return $this->normalizeUrl($fileData);
             }
@@ -55,15 +65,25 @@ class FileStorageService
 
             if ($decoded !== false && !empty($decoded)) {
                 $fileName = $prefix . '_' . time() . '_' . Str::random(6) . '.jpg';
-                $path = 'opname-photos/' . $fileName;
-
-                Storage::disk($this->disk)->put($path, $decoded);
-
-                return $this->formatDiskUrl($path);
+                $savedPath = 'opname-photos/' . $fileName;
+                Storage::disk($this->disk)->put($savedPath, $decoded);
             }
         }
 
-        return null;
+        if (!$savedPath || !$fileName) {
+            return null;
+        }
+
+        // 3. Upload ke Google Drive Folder yang sesuai (Fisik / Tagging) jika terkonfigurasi
+        $localFullPath = Storage::disk($this->disk)->path($savedPath);
+        if (file_exists($localFullPath) && $this->googleDrive->isConfigured()) {
+            $gdriveResult = $this->googleDrive->uploadFile($localFullPath, $fileName, $type);
+            if ($gdriveResult && !empty($gdriveResult['web_view_link'])) {
+                Log::info("File {$fileName} berhasil disinkronkan ke Google Drive ({$type}): {$gdriveResult['web_view_link']}");
+            }
+        }
+
+        return $this->formatDiskUrl($savedPath);
     }
 
     /**
@@ -97,5 +117,39 @@ class FileStorageService
         }
 
         return $url;
+    }
+
+    /**
+     * Cari path file absolut di disk lokal dari URL atau path relatif database.
+     */
+    public function resolveLocalPath(?string $urlOrPath): ?string
+    {
+        if (empty($urlOrPath)) {
+            return null;
+        }
+
+        // Bersihkan path relatif /storage/opname-photos/...
+        $relativePath = preg_replace('#^/storage/#', '', $urlOrPath);
+        $relativePath = ltrim($relativePath, '/');
+
+        // Cek disk public
+        $diskPath = Storage::disk($this->disk)->path($relativePath);
+        if (file_exists($diskPath)) {
+            return $diskPath;
+        }
+
+        // Cek langsung di public_path
+        $publicDirect = public_path($urlOrPath);
+        if (file_exists($publicDirect)) {
+            return $publicDirect;
+        }
+
+        // Cek public_path('storage/' . $relativePath)
+        $publicStorage = public_path('storage/' . $relativePath);
+        if (file_exists($publicStorage)) {
+            return $publicStorage;
+        }
+
+        return null;
     }
 }

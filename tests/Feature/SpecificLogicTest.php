@@ -183,4 +183,49 @@ class SpecificLogicTest extends TestCase
         $this->assertNotNull($riwayat->link_foto_fisik);
         $this->assertNotNull($riwayat->link_tagging_asset);
     }
+
+    public function test_report_export_as_zip_archive_with_photos(): void
+    {
+        // Seed riwayat with photos
+        $photo = UploadedFile::fake()->create('sample.jpg', 50, 'image/jpeg');
+        $service = app(FileStorageService::class);
+        $urlFisik = $service->storePhoto($photo, 'TEST_ZIP_FISIK', 'fisik');
+        $urlTag = $service->storePhoto($photo, 'TEST_ZIP_TAG', 'tagging');
+
+        RiwayatSo::create([
+            'timestamp' => now(),
+            'user' => 'Petugas Internal',
+            'nomor_asset' => '70001001',
+            'deskripsi_asset' => 'Printer Label Barcode',
+            'serial_number' => 'SN-PRN-01',
+            'qty_buku' => 1,
+            'qty_fisik' => 1,
+            'selisih' => 0,
+            'tagging' => 'Ada',
+            'status_penggunaan' => 'Digunakan',
+            'kondisi' => 'Baik',
+            'lokasi' => 'Gudang Utama',
+            'link_foto_fisik' => $urlFisik,
+            'link_tagging_asset' => $urlTag,
+        ]);
+
+        $response = $this->actingAs($this->admin)->get(route('reports.export', [
+            'kategori' => 'INTERNAL',
+            'format' => 'zip',
+        ]));
+
+        $response->assertStatus(200);
+        $response->assertHeader('Content-Type', 'application/zip');
+    }
+
+    public function test_report_export_as_xlsx_only(): void
+    {
+        $response = $this->actingAs($this->admin)->get(route('reports.export', [
+            'kategori' => 'INTERNAL',
+            'format' => 'xlsx',
+        ]));
+
+        $response->assertStatus(200);
+        $response->assertHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    }
 }

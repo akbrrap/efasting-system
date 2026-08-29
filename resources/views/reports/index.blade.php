@@ -9,12 +9,12 @@
     <div class="card-header-clean">
       <div>
         <h2 class="card-title-text">
-          <i class="fa-solid fa-file-excel" style="color: var(--success-600);"></i> Ekspor Laporan Hasil Audit Sensus
+          <i class="fa-solid fa-file-zipper" style="color: var(--primary-600);"></i> Ekspor Laporan Hasil Audit & Dokumentasi Foto
         </h2>
-        <p class="card-subtitle-text">Unduh hasil opname fisik aset tetap (Internal & Eksternal) ke format spreadsheet Microsoft Excel (.xlsx) resmi</p>
+        <p class="card-subtitle-text">Unduh hasil sensus aset ke format arsip ZIP (Excel .xlsx + folder foto fisik & tagging terpisah)</p>
       </div>
-      <span class="badge-pill badge-success">
-        <i class="fa-solid fa-file-export"></i> Excel Export
+      <span class="badge-pill badge-primary">
+        <i class="fa-solid fa-cloud-arrow-down"></i> ZIP / Excel Export
       </span>
     </div>
 
@@ -24,6 +24,14 @@
         <select id="exportKategori" name="kategori" class="form-control-modern" required>
           <option value="INTERNAL" selected>🏭 Hasil Opname Internal Assets (Pabrik & Kantor)</option>
           <option value="EXTERNAL">🚚 Hasil Opname External Assets (Agen & Distributor Channel INN dan Reguler)</option>
+        </select>
+      </div>
+
+      <div class="form-group-modern">
+        <label for="exportFormat" class="form-label-modern">Format Unduhan <span class="req">*</span></label>
+        <select id="exportFormat" name="format" class="form-control-modern" required>
+          <option value="zip" selected>📦 Paket ZIP Lengkap (Excel .xlsx + Folder Foto Fisik & Tagging Terpisah)</option>
+          <option value="xlsx">📊 Hanya File Microsoft Excel (.xlsx)</option>
         </select>
       </div>
 
@@ -45,17 +53,22 @@
         </div>
       </div>
 
-      <div style="background: var(--info-light); border: 1px solid rgba(14, 165, 233, 0.2); border-radius: var(--radius-md); padding: 14px; margin-bottom: 24px; display: flex; align-items: flex-start; gap: 12px;">
-        <i class="fa-solid fa-circle-info" style="color: var(--info-500); font-size: 16px; margin-top: 2px;"></i>
-        <div style="font-size: 12.5px; color: var(--slate-700); line-height: 1.5;">
-          <strong>Informasi Filter Tanggal:</strong><br>
-          Kosongkan kedua tanggal jika ingin mengekspor <strong>seluruh data historis opname</strong> yang tersimpan di sistem.
+      <div style="background: var(--primary-50); border: 1px solid rgba(15, 76, 129, 0.15); border-radius: var(--radius-md); padding: 16px; margin-bottom: 24px; display: flex; align-items: flex-start; gap: 14px;">
+        <i class="fa-solid fa-folder-tree" style="color: var(--primary-600); font-size: 18px; margin-top: 2px;"></i>
+        <div style="font-size: 12.5px; color: var(--slate-700); line-height: 1.6;">
+          <strong style="color: var(--primary-800);">Struktur Arsip Unduhan ZIP:</strong><br>
+          <span style="font-family: monospace; font-size: 12px; color: var(--primary-700); display: block; margin-top: 4px; background: rgba(255,255,255,0.7); padding: 8px 12px; border-radius: 6px; border: 1px dashed var(--primary-200);">
+            📁 Laporan_Opname_XXXX.zip<br>
+            ├── 📊 Laporan_Opname_XXXX.xlsx<br>
+            ├── 📁 foto_fisik/ (Kumpulan foto kondisi fisik aset)<br>
+            └── 📁 foto_tagging/ (Kumpulan foto tagging barcode/label aset)
+          </span>
         </div>
       </div>
 
       <div style="display: flex; justify-content: flex-end;">
-        <button type="submit" id="btnExport" class="btn-enterprise btn-enterprise-success" style="min-width: 220px; padding: 13px;">
-          <i class="fa-solid fa-download"></i> Unduh File Laporan (.xlsx)
+        <button type="submit" id="btnExport" class="btn-enterprise btn-enterprise-primary" style="min-width: 240px; padding: 13px;">
+          <i class="fa-solid fa-download"></i> Unduh Laporan Sekarang
         </button>
       </div>
     </form>
