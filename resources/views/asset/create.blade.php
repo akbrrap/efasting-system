@@ -193,7 +193,7 @@
     .then(res => res.json())
     .then(res => {
       showLoading(false);
-      if (res.status === 'success') {
+      if (res.success || res.status === 'success') {
         showModal('success', 'Aset Berhasil Didaftarkan', res.message, 'center', () => {
           window.location.href = "{{ route('asset.index') }}";
         });
@@ -237,7 +237,7 @@
       showLoading(false);
       event.target.value = '';
 
-      if (res.status === 'success') {
+      if (res.success || res.status === 'success') {
         let msg = `<strong>${res.message}</strong><br><br>`;
         msg += `Total Baris: ${res.total_rows || 0}<br>`;
         msg += `Berhasil Dimasukkan: <strong style="color:var(--success-600);">${res.inserted || 0}</strong><br>`;

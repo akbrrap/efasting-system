@@ -326,7 +326,7 @@
     .then(res => res.json())
     .then(res => {
       showLoading(false);
-      if (res.status === 'success') {
+      if (res.success || res.status === 'success') {
         showModal('success', 'Opname Berhasil Disimpan', res.message || 'Data sensus aset internal berhasil direkam ke dalam sistem.', 'center', () => {
           window.location.href = "{{ route('dashboard') }}";
         });

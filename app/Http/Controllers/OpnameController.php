@@ -82,6 +82,7 @@ class OpnameController extends Controller
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
                 'success' => true,
+                'status' => 'success',
                 'message' => $msg,
                 'data' => $riwayat,
             ]);
@@ -135,6 +136,7 @@ class OpnameController extends Controller
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
                 'success' => true,
+                'status' => 'success',
                 'message' => $msg,
                 'data' => $riwayat,
             ]);

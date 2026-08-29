@@ -288,7 +288,7 @@
     .then(res => res.json())
     .then(res => {
       showLoading(false);
-      if (res.status === 'success') {
+      if (res.success || res.status === 'success') {
         showModal('success', 'Disposal Berhasil Diproses', res.message, 'center', () => {
           resetPencarianRet();
         });
@@ -324,7 +324,7 @@
       showLoading(false);
       event.target.value = '';
 
-      if (res.status === 'success') {
+      if (res.success || res.status === 'success') {
         let msg = `<strong>${res.message}</strong><br><br>`;
         msg += `Total Baris: ${res.total_rows || 0}<br>`;
         msg += `Aset Terhapus Penuh: <strong style="color:var(--danger-500);">${res.deleted || 0}</strong><br>`;
