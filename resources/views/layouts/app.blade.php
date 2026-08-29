@@ -5,65 +5,102 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="csrf-token" content="{{ csrf_token() }}">
-  <title>@yield('title', 'eFasting System') - Asset Management</title>
+  <title>@yield('title', 'Dashboard') - eFasting Enterprise</title>
 
   <!-- PWA & Mobile Meta Tags -->
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="eFasting SO">
-  <meta name="theme-color" content="#004b87">
+  <meta name="theme-color" content="#0f4c81">
 
-  <!-- Typography & Icons -->
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Typography & Font Awesome Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <!-- CSS Terpisah -->
+  <!-- Core Enterprise Design System -->
   <link rel="stylesheet" href="{{ asset('css/style.css') }}">
   @stack('styles')
 </head>
 
 <body>
-  <!-- Loading Overlay -->
+  <!-- Loading Spinner Overlay -->
   @include('partials.loading')
 
-  <!-- Sidebar Navigasi -->
-  @include('partials.sidebar')
-
-  <!-- Modal Dialogs -->
+  <!-- Modal Dialogs System -->
   @include('partials.modals')
 
-  <!-- Main Content Container -->
-  <div class="app-container">
-    @yield('content')
+  <div class="app-layout">
+    <!-- Sidebar Drawer Backdrop for Mobile -->
+    <div class="drawer-backdrop" id="drawerBackdrop" onclick="toggleSidebar(false)"></div>
+
+    <!-- 1. Left Sidebar Navigation -->
+    @include('partials.sidebar')
+
+    <!-- 2. Main Wrapper (Topbar + Workspace) -->
+    <div class="main-wrapper">
+      @include('partials.header', ['title' => trim($__env->yieldContent('title', 'eFasting Enterprise'))])
+
+      <main class="content-workspace">
+        @yield('content')
+      </main>
+    </div>
   </div>
 
-  <!-- Global UI & Helper Scripts -->
+  <!-- Global UI & Helper JavaScript -->
   <script>
-    // CSRF Setup untuk Fetch/AJAX
     const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
-    function toggleSidebar() {
-      const sb = document.getElementById('sidebar');
-      const overlay = document.getElementById('sidebarOverlay');
-      if (sb) sb.classList.toggle('open');
-      if (overlay) overlay.style.display = overlay.style.display === 'block' ? 'none' : 'block';
+    // Sidebar & Drawer Toggle (Rock-solid for mobile & desktop)
+    function toggleSidebar(forceState = null) {
+      const sidebar = document.getElementById('sidebarWrapper');
+      const backdrop = document.getElementById('drawerBackdrop');
+
+      if (!sidebar) return;
+
+      const shouldOpen = (forceState !== null) ? forceState : !sidebar.classList.contains('open');
+
+      if (shouldOpen) {
+        sidebar.classList.add('open');
+        if (backdrop) backdrop.style.display = 'block';
+        document.body.style.overflow = (window.innerWidth <= 1024) ? 'hidden' : '';
+      } else {
+        sidebar.classList.remove('open');
+        if (backdrop) backdrop.style.display = 'none';
+        document.body.style.overflow = '';
+      }
     }
 
-    function toggleSubmenu(id, el) {
-      const sub = document.getElementById(id);
-      if (sub) sub.classList.toggle('open');
-      if (el) el.classList.toggle('expanded');
+    // Submenu Collapsible Accordion
+    function toggleSubmenu(groupId, element) {
+      const group = document.getElementById(groupId);
+      if (!group) return;
+
+      const isOpen = group.classList.contains('open');
+      
+      // Close other open submenus for clean accordion look
+      document.querySelectorAll('.nav-group.open').forEach(el => {
+        if (el !== group) el.classList.remove('open');
+      });
+
+      if (isOpen) {
+        group.classList.remove('open');
+      } else {
+        group.classList.add('open');
+      }
     }
 
+    // Loading Indicator
     function showLoading(show = true) {
       const el = document.getElementById('loadingOverlay');
       if (el) el.style.display = show ? 'flex' : 'none';
     }
 
+    // Custom Glass Modal System
     let isModalSuccess = false;
     let modalCallback = null;
 
@@ -71,41 +108,40 @@
       isModalSuccess = (type === 'success');
       modalCallback = callback;
 
-      let iconHTML = type === 'success' 
-        ? '<i class="fa-solid fa-circle-check success"></i>' 
-        : type === 'error' 
-          ? '<i class="fa-solid fa-circle-xmark error"></i>' 
-          : '<i class="fa-solid fa-circle-info" style="color:var(--main-blue);"></i>';
+      const iconBox = document.getElementById('modalIconWrapper');
+      if (iconBox) {
+        iconBox.className = `modal-icon-wrapper ${type}`;
+        iconBox.innerHTML = (type === 'success') 
+          ? '<i class="fa-solid fa-check"></i>' 
+          : (type === 'error') 
+            ? '<i class="fa-solid fa-xmark"></i>' 
+            : '<i class="fa-solid fa-info"></i>';
+      }
 
-      let btnClass = type === 'success' || type === 'info' ? 'btn-modal success' : 'btn-modal error';
+      const titleEl = document.getElementById('modalTitle');
+      if (titleEl) titleEl.innerText = title;
 
-      const modalIcon = document.getElementById('modalIcon');
-      if (modalIcon) modalIcon.innerHTML = `<div class="modal-icon">${iconHTML}</div>`;
-      
-      const modalTitle = document.getElementById('modalTitle');
-      if (modalTitle) modalTitle.innerText = title;
-
-      const modalDesc = document.getElementById('modalDesc');
-      if (modalDesc) modalDesc.innerHTML = desc;
+      const descEl = document.getElementById('modalDesc');
+      if (descEl) {
+        descEl.innerHTML = desc;
+        descEl.style.textAlign = align;
+      }
 
       const btn = document.getElementById('modalBtn');
       if (btn) {
-        btn.className = btnClass;
-        btn.innerText = (type === 'success' || type === 'info') ? 'Tutup' : 'Tutup & Perbaiki';
+        btn.className = (type === 'success' || type === 'info') 
+          ? 'btn-enterprise btn-enterprise-primary' 
+          : 'btn-enterprise btn-enterprise-danger';
+        btn.innerText = (type === 'success' || type === 'info') ? 'Mengerti' : 'Tutup & Perbaiki';
       }
 
-      const modalBox = document.getElementById('modalBoxElement');
-      if (modalBox) {
-        align === 'left' ? modalBox.classList.remove('center-text') : modalBox.classList.add('center-text');
-      }
-
-      const customModal = document.getElementById('customModal');
-      if (customModal) customModal.style.display = 'flex';
+      const modal = document.getElementById('customModal');
+      if (modal) modal.style.display = 'flex';
     }
 
     function closeModal() {
-      const customModal = document.getElementById('customModal');
-      if (customModal) customModal.style.display = 'none';
+      const modal = document.getElementById('customModal');
+      if (modal) modal.style.display = 'none';
       if (typeof modalCallback === 'function') {
         modalCallback();
         modalCallback = null;
@@ -119,31 +155,25 @@
 
     function bukaPreviewFoto(url) {
       if (!url || url === 'undefined' || url.trim() === '') {
-        return showModal('error', 'Tidak Ada Foto', 'Aset ini belum dilengkapi dengan dokumentasi foto.');
+        return showModal('error', 'Tidak Ada Foto', 'Aset ini belum dilengkapi dengan foto dokumentasi.');
       }
       const img = document.getElementById('previewImageModal');
-      const frame = document.getElementById('previewFrameModal');
-      
       const cleanUrl = url.trim();
-      
-      // Deteksi jika link adalah gambar langsung vs dokumen iframe
-      if (cleanUrl.match(/\.(jpeg|jpg|gif|png|webp)($|\?)/i) || cleanUrl.startsWith('data:image') || cleanUrl.includes('/storage/opname-photos/')) {
+
+      if (img) {
         img.src = cleanUrl;
         img.style.display = 'block';
-        frame.style.display = 'none';
-      } else {
-        frame.src = cleanUrl;
-        frame.style.display = 'block';
-        img.style.display = 'none';
       }
 
-      document.getElementById('photoModal').style.display = 'flex';
+      const photoModal = document.getElementById('photoModal');
+      if (photoModal) photoModal.style.display = 'flex';
     }
 
     function tutupPreviewFoto() {
-      document.getElementById('photoModal').style.display = 'none';
-      document.getElementById('previewImageModal').src = '';
-      document.getElementById('previewFrameModal').src = '';
+      const photoModal = document.getElementById('photoModal');
+      if (photoModal) photoModal.style.display = 'none';
+      const img = document.getElementById('previewImageModal');
+      if (img) img.src = '';
     }
 
     function formatRibuan(angka) {
@@ -160,6 +190,15 @@
       value = value.replace(/-/g, '');
       input.value = (isNegative ? '-' : '') + value.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
     }
+
+    // Auto close drawer when window resized to desktop
+    window.addEventListener('resize', () => {
+      if (window.innerWidth > 1024) {
+        const backdrop = document.getElementById('drawerBackdrop');
+        if (backdrop) backdrop.style.display = 'none';
+        document.body.style.overflow = '';
+      }
+    });
   </script>
 
   @stack('scripts')

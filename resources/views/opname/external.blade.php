@@ -3,374 +3,404 @@
 @section('title', 'Stock Opname External Assets')
 
 @section('content')
-<div id="viewApp" class="view-section active">
-  @include('partials.header', ['title' => 'Stock Opname External Assets'])
+<div style="max-width: 900px; margin: 0 auto;">
 
-  <div class="form-content">
-    <!-- Info Petugas & Status DB -->
-    <div style="background: var(--main-blue-light); padding: 10px 15px; border-radius: 8px; margin-bottom: 20px; font-size: 13px; color: var(--main-blue); display: flex; justify-content: space-between; align-items: center;">
-      <span><i class="fa-solid fa-user-check"></i> <strong>{{ auth()->user()->nama_karyawan }}</strong></span>
-      <span id="dbStatus" style="font-size: 11px; background: #27ae60; color: #fff; padding: 3px 8px; border-radius: 4px;">
-        <i class="fa-solid fa-check"></i> DB Siap
-      </span>
+  <div class="card-panel">
+    <div class="card-header-clean">
+      <div>
+        <h2 class="card-title-text">
+          <i class="fa-solid fa-truck-ramp-box" style="color: var(--accent-600);"></i> Form Stock Opname Eksternal (Vendor & Distributor)
+        </h2>
+        <p class="card-subtitle-text">Verifikasi fisik aset di lokasi pihak ketiga (Vendor, Distributor, Gudang Eksternal) beserta validasi kode entitas lokasi</p>
+      </div>
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span class="badge-pill badge-warning">
+          <i class="fa-solid fa-user-tag"></i> {{ auth()->user()->nama_karyawan }}
+        </span>
+      </div>
     </div>
 
     <form id="formOpnameExternal" enctype="multipart/form-data">
       @csrf
 
-      <!-- Dokumentasi Foto (Fisik & Tagging) -->
-      <div class="form-group">
-        <label>Dokumentasi Opname <span style="color:red">*</span></label>
-        <div class="grid-2">
-          <div class="file-upload-wrapper" id="boxFisik">
-            <i class="fa-solid fa-camera" style="font-size:22px; color:var(--main-blue); margin-bottom:5px;"></i>
-            <p id="nameFisik" style="font-size:12px; color:var(--main-blue); font-weight:600;">Foto Aset (Fisik)</p>
-            <input type="file" id="inputFotoFisik" accept="image/*" capture="environment" onchange="previewUploadFoto(event, 'previewFisik', 'nameFisik', 'boxFisik', 'fisik')">
-            <img id="previewFisik" class="image-preview" alt="Foto Fisik">
+      <!-- 1. Dokumentasi Foto (Fisik & Tagging) -->
+      <div class="form-group-modern" style="margin-bottom: 24px;">
+        <label class="form-label-modern">Dokumentasi Foto Sensus Eksternal <span class="req">*</span></label>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+          <!-- Foto Fisik -->
+          <div style="border: 2px dashed var(--primary-300); background: var(--primary-50); border-radius: var(--radius-lg); padding: 20px; text-align: center; cursor: pointer; position: relative; transition: all 0.2s ease;" id="boxFisik" onclick="document.getElementById('inputFotoFisik').click()">
+            <input type="file" id="inputFotoFisik" accept="image/*" capture="environment" style="display: none;" onchange="previewUploadFoto(event, 'previewFisik', 'nameFisik', 'boxFisik', 'fisik')">
+            <div id="iconFisikBox">
+              <i class="fa-solid fa-camera" style="font-size: 28px; color: var(--primary-600); margin-bottom: 8px;"></i>
+              <div id="nameFisik" style="font-weight: 700; font-size: 13px; color: var(--primary-700);">Foto Fisik Unit Eksternal</div>
+              <div style="font-size: 11.5px; color: var(--slate-500); margin-top: 2px;">Kamera / Galeri</div>
+            </div>
+            <img id="previewFisik" style="display: none; max-height: 140px; border-radius: 8px; margin: 0 auto; box-shadow: var(--shadow-md); object-fit: contain;" alt="Foto Fisik">
           </div>
 
-          <div class="file-upload-wrapper" id="boxTagging">
-            <i class="fa-solid fa-qrcode" style="font-size:22px; color:var(--main-yellow-hover); margin-bottom:5px;"></i>
-            <p id="nameTagging" style="font-size:12px; color:var(--main-yellow-hover); font-weight:600;">Foto Label (Tagging)</p>
-            <input type="file" id="inputFotoTagging" accept="image/*" capture="environment" onchange="previewUploadFoto(event, 'previewTagging', 'nameTagging', 'boxTagging', 'tagging')">
-            <img id="previewTagging" class="image-preview" alt="Foto Tagging">
+          <!-- Foto Tagging -->
+          <div style="border: 2px dashed #fcd34d; background: var(--accent-light); border-radius: var(--radius-lg); padding: 20px; text-align: center; cursor: pointer; position: relative; transition: all 0.2s ease;" id="boxTagging" onclick="document.getElementById('inputFotoTagging').click()">
+            <input type="file" id="inputFotoTagging" accept="image/*" capture="environment" style="display: none;" onchange="previewUploadFoto(event, 'previewTagging', 'nameTagging', 'boxTagging', 'tagging')">
+            <div id="iconTaggingBox">
+              <i class="fa-solid fa-qrcode" style="font-size: 28px; color: var(--accent-600); margin-bottom: 8px;"></i>
+              <div id="nameTagging" style="font-weight: 700; font-size: 13px; color: var(--accent-600);">Foto Tagging Barcode</div>
+              <div style="font-size: 11.5px; color: var(--slate-500); margin-top: 2px;">Label Aset</div>
+            </div>
+            <img id="previewTagging" style="display: none; max-height: 140px; border-radius: 8px; margin: 0 auto; box-shadow: var(--shadow-md); object-fit: contain;" alt="Foto Tagging">
           </div>
         </div>
       </div>
 
-      <!-- Pencarian Aset Eksternal -->
-      <div class="form-group">
-        <label>Pencarian Aset Eksternal (No Aset / Nama / SN)</label>
-        <div class="input-wrapper">
-          <i class="fa-solid fa-magnifying-glass icon-left"></i>
-          <input type="text" id="searchInput" class="form-control" style="padding-right: 35px;"
-            placeholder="Ketik No / Nama / SN atau Scan Barcode..." autocomplete="off" onkeyup="cariAset()" onfocus="bukaDropdown()">
-          <i class="fa-solid fa-circle-xmark icon-right" id="clearSearchBtn" style="display:none; color:#e74c3c; font-size:18px; cursor:pointer;" onclick="resetPencarian()"></i>
+      <!-- 2. Pencarian & Autocomplete Aset Eksternal -->
+      <div class="form-group-modern">
+        <label for="searchInput" class="form-label-modern">Cari Aset Eksternal (No Aset / Deskripsi / SN) <span class="req">*</span></label>
+        <div class="input-container">
+          <i class="fa-solid fa-magnifying-glass input-icon-left"></i>
+          <input type="text" id="searchInput" class="form-control-modern" placeholder="Ketik nomor aset, nama kendaraan, atau serial number..." autocomplete="off" onkeyup="cariAset()" onfocus="bukaDropdown()">
+          <i class="fa-solid fa-circle-xmark" id="clearSearchBtn" style="display:none; position: absolute; right: 14px; color: var(--danger-500); font-size: 16px; cursor: pointer;" onclick="resetPencarian()"></i>
         </div>
-        <div id="customDropdown" class="dropdown-list" style="display:none;"></div>
+        <div id="customDropdown" class="search-dropdown-box"></div>
         <input type="hidden" id="assetNo" name="nomor_asset">
       </div>
 
-      <!-- Deskripsi Aset -->
-      <div class="form-group">
-        <label>Nama Aset</label>
-        <div class="input-wrapper">
-          <i class="fa-solid fa-box-open icon-left"></i>
-          <input type="text" id="assetDesc" name="deskripsi_asset" class="form-control" readonly placeholder="-">
+      <!-- 3. Deskripsi & Serial Number -->
+      <div class="form-group-modern">
+        <label class="form-label-modern">Deskripsi Aset Eksternal</label>
+        <div class="input-container">
+          <i class="fa-solid fa-truck-moving input-icon-left"></i>
+          <input type="text" id="assetDesc" name="deskripsi_asset" class="form-control-modern" readonly placeholder="Otomatis terisi saat aset dipilih...">
         </div>
       </div>
 
-      <!-- Serial Number & Qty Buku -->
-      <div class="grid-2">
-        <div class="form-group">
-          <label>Serial Number</label>
-          <div class="input-wrapper">
-            <i class="fa-solid fa-barcode icon-left"></i>
-            <input type="text" id="assetSn" name="serial_number" class="form-control" readonly placeholder="-">
+      <div class="form-grid-2">
+        <div class="form-group-modern">
+          <label class="form-label-modern">Serial Number (SN)</label>
+          <div class="input-container">
+            <i class="fa-solid fa-barcode input-icon-left"></i>
+            <input type="text" id="assetSn" name="serial_number" class="form-control-modern" readonly placeholder="-">
           </div>
         </div>
-        <div class="form-group">
-          <label>Qty Buku</label>
-          <div class="input-wrapper">
-            <i class="fa-solid fa-book icon-left"></i>
-            <input type="number" id="qtyBuku" name="book_qty" class="form-control" readonly placeholder="0">
+
+        <div class="form-group-modern">
+          <label class="form-label-modern">Kuantitas Buku</label>
+          <div class="input-container">
+            <i class="fa-solid fa-book input-icon-left"></i>
+            <input type="number" id="qtyBuku" name="book_qty" class="form-control-modern" readonly placeholder="0">
           </div>
         </div>
       </div>
 
-      <!-- Lokasi Aktual Eksternal -->
-      <div class="form-group" style="background: #fff8e1; padding: 15px; border-radius: 8px; border: 1px dashed var(--main-yellow);">
-        <label style="color:var(--main-yellow-hover); font-weight:600;">Lokasi Aktual Eksternal <span style="color:red">*</span></label>
-        <div class="input-wrapper">
-          <i class="fa-solid fa-building-circle-check icon-left" style="color:var(--main-yellow-hover);"></i>
-          <input type="text" id="searchLokasi" class="form-control" placeholder="Pilih atau cari kode/nama lokasi..." autocomplete="off" onkeyup="cariLokasi()" onfocus="bukaDropdownLokasi()">
+      <!-- 4. Pilihan Lokasi Aktual Eksternal (Entity Code) -->
+      <div class="form-group-modern" style="background: var(--primary-50); padding: 18px; border-radius: var(--radius-lg); border: 1.5px solid var(--primary-200);">
+        <label for="searchLokasi" class="form-label-modern" style="color: var(--primary-800); font-weight: 700;">
+          <i class="fa-solid fa-location-crosshairs" style="color: var(--primary-600);"></i> Lokasi Aktual Eksternal Terdaftar <span class="req">*</span>
+        </label>
+        <div class="input-container" style="position: relative;">
+          <i class="fa-solid fa-warehouse input-icon-left" style="color: var(--primary-600);"></i>
+          <input type="text" id="searchLokasi" class="form-control-modern" placeholder="Pilih atau cari kode entitas lokasi (contoh: PLG-WH01)..." autocomplete="off" onkeyup="cariLokasi()" onfocus="bukaDropdownLokasi()" style="background: #ffffff;">
         </div>
-        <div id="dropdownLokasi" class="dropdown-list" style="display:none;"></div>
+        <div id="dropdownLokasi" class="search-dropdown-box"></div>
         <input type="hidden" id="kodeLokasiHidden" name="aktual_loc">
       </div>
 
-      <!-- Qty Fisik Aktual -->
-      <div class="form-group">
-        <label>Qty Fisik Aktual <span style="color:red">*</span></label>
-        <div class="input-wrapper">
-          <i class="fa-solid fa-clipboard-check icon-left" style="color:var(--main-blue);"></i>
-          <input type="number" id="qtyFisik" name="physic_qty" class="form-control" placeholder="Jumlah fisik..." required min="0">
+      <!-- 5. Kuantitas Fisik Aktual -->
+      <div class="form-group-modern">
+        <label for="qtyFisik" class="form-label-modern">Kuantitas Fisik Aktual <span class="req">*</span></label>
+        <div class="input-container">
+          <i class="fa-solid fa-clipboard-check input-icon-left" style="color: var(--primary-600);"></i>
+          <input type="number" id="qtyFisik" name="physic_qty" class="form-control-modern" placeholder="Masukkan jumlah fisik..." required min="0">
         </div>
       </div>
 
-      <!-- Kondisi & Status -->
-      <div class="form-group">
-        <label>Kondisi & Status <span style="color:red">*</span></label>
-        <div class="grid-3">
-          <select id="tagging" name="kelengkapan_tagging" class="form-control" style="padding-left:10px;" required>
-            <option value="" disabled selected>🏷️ Tagging?</option>
-            <option value="Ada">✔️ Ada</option>
-            <option value="Tidak Ada">❌ Tidak</option>
+      <!-- 6. Tagging, Status & Kondisi -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 18px;">
+        <div class="form-group-modern">
+          <label for="tagging" class="form-label-modern">Kelengkapan Tagging <span class="req">*</span></label>
+          <select id="tagging" name="kelengkapan_tagging" class="form-control-modern" required>
+            <option value="" disabled selected>Pilih Tagging Label...</option>
+            <option value="Ada">✅ Ada Label Tagging</option>
+            <option value="Tidak Ada">❌ Tidak Ada Label</option>
           </select>
+        </div>
 
-          <select id="status" name="status" class="form-control" style="padding-left:10px;" required>
-            <option value="" disabled selected>📌 Status?</option>
-            <option value="Digunakan">🟢 Digunakan</option>
-            <option value="Idle Sementara">🟡 Idle Sem.</option>
-            <option value="Idle Permanen">🔴 Idle Perm.</option>
+        <div class="form-group-modern">
+          <label for="status" class="form-label-modern">Status Penggunaan <span class="req">*</span></label>
+          <select id="status" name="status" class="form-control-modern" required>
+            <option value="" disabled selected>Pilih Status Pemakaian...</option>
+            <option value="Digunakan">🟢 Sedang Digunakan</option>
+            <option value="Idle Sementara">🟡 Idle Sementara</option>
+            <option value="Idle Permanen">🔴 Idle Permanen</option>
           </select>
+        </div>
 
-          <select id="kondisi" name="kondisi" class="form-control" style="padding-left:10px;" required>
-            <option value="" disabled selected>🛠️ Kondisi?</option>
-            <option value="Baik">✔️ Baik</option>
-            <option value="Rusak">❌ Rusak</option>
+        <div class="form-group-modern">
+          <label for="kondisi" class="form-label-modern">Kondisi Fisik <span class="req">*</span></label>
+          <select id="kondisi" name="kondisi" class="form-control-modern" required>
+            <option value="" disabled selected>Pilih Kondisi Fisik...</option>
+            <option value="Baik">✨ Kondisi Baik</option>
+            <option value="Rusak">⚠️ Rusak / Butuh Perbaikan</option>
           </select>
         </div>
       </div>
 
-      <!-- Catatan / Keterangan -->
-      <div class="form-group">
-        <label>Catatan (Opsional)</label>
-        <textarea id="keterangan" name="keterangan" class="form-control" rows="2" placeholder="Tambahkan catatan jika diperlukan..."></textarea>
+      <!-- 7. Keterangan / Catatan Tambahan -->
+      <div class="form-group-modern">
+        <label for="keterangan" class="form-label-modern">Catatan / Keterangan Auditor</label>
+        <div class="input-container">
+          <i class="fa-solid fa-pen-to-square input-icon-left"></i>
+          <input type="text" id="keterangan" name="keterangan" class="form-control-modern" placeholder="Catatan opsional mengenai kondisi fisik aset...">
+        </div>
       </div>
 
       <!-- Tombol Submit -->
-      <button type="button" id="btnSubmit" class="btn-primary" onclick="submitOpnameExternal()">
-        <i class="fa-solid fa-cloud-arrow-up"></i> Simpan Data Opname Eksternal
-      </button>
+      <div style="margin-top: 28px; display: flex; gap: 12px; justify-content: flex-end;">
+        <button type="reset" class="btn-enterprise btn-enterprise-outline" onclick="resetForm()">
+          <i class="fa-solid fa-rotate-left"></i> Reset Form
+        </button>
+        <button type="submit" id="btnSubmit" class="btn-enterprise btn-enterprise-yellow" style="min-width: 180px;">
+          <i class="fa-solid fa-paper-plane"></i> Simpan Hasil Opname
+        </button>
+      </div>
     </form>
   </div>
+
 </div>
 @endsection
 
 @push('scripts')
 <script>
-  let photoFisikBase64 = null;
-  let photoTaggingBase64 = null;
-  let listLokasi = [];
+  let base64Fisik = null;
+  let base64Tagging = null;
+  let searchTimer = null;
+  let searchLokasiTimer = null;
 
-  document.addEventListener('DOMContentLoaded', async function () {
-    try {
-      const res = await fetch("{{ route('api.assets.locations') }}");
-      const json = await res.json();
-      listLokasi = json.data || [];
-    } catch (err) {
-      console.error("Gagal load lokasi:", err);
+  function previewUploadFoto(event, imgId, nameId, boxId, type) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const img = document.getElementById(imgId);
+    const box = document.getElementById(boxId);
+    const reader = new FileReader();
+
+    reader.onload = function(e) {
+      if (img) {
+        img.src = e.target.result;
+        img.style.display = 'block';
+      }
+      if (box) {
+        const iconDiv = box.querySelector('div');
+        if (iconDiv) iconDiv.style.display = 'none';
+      }
+      if (type === 'fisik') base64Fisik = e.target.result;
+      if (type === 'tagging') base64Tagging = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function cariAset() {
+    clearTimeout(searchTimer);
+    const query = document.getElementById('searchInput').value.trim();
+    const dropdown = document.getElementById('customDropdown');
+    const clearBtn = document.getElementById('clearSearchBtn');
+
+    if (query.length > 0) {
+      if (clearBtn) clearBtn.style.display = 'block';
+    } else {
+      if (clearBtn) clearBtn.style.display = 'none';
+      if (dropdown) dropdown.style.display = 'none';
+      return;
     }
-  });
+
+    searchTimer = setTimeout(() => {
+      fetch(`/api/assets/search?q=${encodeURIComponent(query)}&type=external`)
+        .then(res => res.json())
+        .then(res => {
+          if (!dropdown) return;
+          dropdown.innerHTML = '';
+
+          if (!res.data || res.data.length === 0) {
+            dropdown.innerHTML = '<div style="padding: 12px 16px; font-size: 12.5px; color: var(--slate-400); text-align: center;">Tidak ada aset eksternal yang cocok.</div>';
+            dropdown.style.display = 'block';
+            return;
+          }
+
+          res.data.forEach(item => {
+            const row = document.createElement('div');
+            row.className = 'dropdown-item-row';
+            row.innerHTML = `
+              <div class="dropdown-item-header">
+                <i class="fa-solid fa-truck"></i> ${item.nomor_asset} &bull; ${item.deskripsi_asset}
+              </div>
+              <div class="dropdown-item-sub">
+                SN: ${item.serial_number || '-'} | Qty Buku: ${item.qty_buku || 0} | Lokasi: ${item.allocation || '-'}
+              </div>
+            `;
+            row.onclick = () => pilihAset(item);
+            dropdown.appendChild(row);
+          });
+
+          dropdown.style.display = 'block';
+        })
+        .catch(err => {
+          console.error(err);
+        });
+    }, 250);
+  }
 
   function bukaDropdown() {
-    const text = document.getElementById('searchInput').value.trim();
-    if (text.length > 0) document.getElementById('customDropdown').style.display = 'block';
+    const q = document.getElementById('searchInput').value.trim();
+    if (q.length > 0) cariAset();
+  }
+
+  function pilihAset(item) {
+    document.getElementById('searchInput').value = `${item.nomor_asset} - ${item.deskripsi_asset}`;
+    document.getElementById('assetNo').value = item.nomor_asset;
+    document.getElementById('assetDesc').value = item.deskripsi_asset || '';
+    document.getElementById('assetSn').value = item.serial_number || '';
+    document.getElementById('qtyBuku').value = item.qty_buku || 0;
+    document.getElementById('qtyFisik').value = item.qty_buku || 1;
+
+    const dropdown = document.getElementById('customDropdown');
+    if (dropdown) dropdown.style.display = 'none';
+  }
+
+  function resetPencarian() {
+    document.getElementById('searchInput').value = '';
+    document.getElementById('assetNo').value = '';
+    document.getElementById('assetDesc').value = '';
+    document.getElementById('assetSn').value = '';
+    document.getElementById('qtyBuku').value = '';
+    document.getElementById('clearSearchBtn').style.display = 'none';
+    document.getElementById('customDropdown').style.display = 'none';
+  }
+
+  // Location Search Dropdown
+  function cariLokasi() {
+    clearTimeout(searchLokasiTimer);
+    const query = document.getElementById('searchLokasi').value.trim();
+    const dropdown = document.getElementById('dropdownLokasi');
+
+    searchLokasiTimer = setTimeout(() => {
+      fetch(`/api/lokasi/search?q=${encodeURIComponent(query)}`)
+        .then(res => res.json())
+        .then(res => {
+          if (!dropdown) return;
+          dropdown.innerHTML = '';
+
+          if (!res.data || res.data.length === 0) {
+            dropdown.innerHTML = '<div style="padding: 12px 16px; font-size: 12.5px; color: var(--slate-400); text-align: center;">Tidak ada kode lokasi yang cocok.</div>';
+            dropdown.style.display = 'block';
+            return;
+          }
+
+          res.data.forEach(item => {
+            const row = document.createElement('div');
+            row.className = 'dropdown-item-row';
+            row.innerHTML = `
+              <div class="dropdown-item-header">
+                <i class="fa-solid fa-location-dot"></i> ${item.code_entity}
+              </div>
+              <div class="dropdown-item-sub">${item.description}</div>
+            `;
+            row.onclick = () => {
+              document.getElementById('searchLokasi').value = `${item.code_entity} - ${item.description}`;
+              document.getElementById('kodeLokasiHidden').value = item.code_entity;
+              dropdown.style.display = 'none';
+            };
+            dropdown.appendChild(row);
+          });
+
+          dropdown.style.display = 'block';
+        })
+        .catch(err => {
+          console.error(err);
+        });
+    }, 250);
   }
 
   function bukaDropdownLokasi() {
     cariLokasi();
   }
 
-  let searchDebounce = null;
-  function cariAset() {
-    const query = document.getElementById('searchInput').value.trim();
-    document.getElementById('clearSearchBtn').style.display = query.length > 0 ? 'block' : 'none';
-    
-    if (query === '') {
-      document.getElementById('customDropdown').style.display = 'none';
-      return;
+  function resetForm() {
+    resetPencarian();
+    document.getElementById('searchLokasi').value = '';
+    document.getElementById('kodeLokasiHidden').value = '';
+    base64Fisik = null;
+    base64Tagging = null;
+    document.getElementById('previewFisik').style.display = 'none';
+    document.getElementById('previewTagging').style.display = 'none';
+    document.getElementById('iconFisikBox').style.display = 'block';
+    document.getElementById('iconTaggingBox').style.display = 'block';
+  }
+
+  // Close dropdown on outside click
+  document.addEventListener('click', function(e) {
+    const dropdownAsset = document.getElementById('customDropdown');
+    const searchAsset = document.getElementById('searchInput');
+    if (dropdownAsset && !dropdownAsset.contains(e.target) && e.target !== searchAsset) {
+      dropdownAsset.style.display = 'none';
     }
 
-    clearTimeout(searchDebounce);
-    searchDebounce = setTimeout(async () => {
-      try {
-        const res = await fetch(`/api/assets/search?kategori=EXTERNAL&query=${encodeURIComponent(query)}`);
-        const json = await res.json();
-        renderDropdownList(json.data || []);
-      } catch (err) {
-        console.error("Search error:", err);
-      }
-    }, 200);
-  }
-
-  function renderDropdownList(items) {
-    const box = document.getElementById('customDropdown');
-    box.style.display = 'block';
-
-    if (items.length === 0) {
-      box.innerHTML = '<div class="dropdown-item" style="color:#e74c3c;text-align:center;">Aset eksternal tidak ditemukan</div>';
-      return;
+    const dropdownLokasi = document.getElementById('dropdownLokasi');
+    const searchLokasi = document.getElementById('searchLokasi');
+    if (dropdownLokasi && !dropdownLokasi.contains(e.target) && e.target !== searchLokasi) {
+      dropdownLokasi.style.display = 'none';
     }
+  });
 
-    let html = '';
-    items.forEach(item => {
-      let safeId = item.id.replace(/'/g, "\\'");
-      let safeDesc = item.desc.replace(/'/g, "\\'");
-      let safeSn = (item.sn || '-').replace(/'/g, "\\'");
-      let snLabel = item.sn && item.sn !== '-' ? `<span class="sn-badge">SN: ${item.sn}</span>` : '';
-      
-      html += `<div class="dropdown-item" onclick="pilihAset('${safeId}', '${safeDesc}', '${safeSn}', ${item.qty})">
-        <strong>${item.id} ${snLabel}</strong>
-        <span>${item.desc}</span>
-      </div>`;
-    });
-    box.innerHTML = html;
-  }
+  // Submit Handler
+  document.getElementById('formOpnameExternal').addEventListener('submit', function(e) {
+    e.preventDefault();
 
-  function pilihAset(id, desc, sn, qty) {
-    document.getElementById('searchInput').value = `${id} - ${desc}`;
-    document.getElementById('assetNo').value = id;
-    document.getElementById('assetDesc').value = desc;
-    document.getElementById('assetSn').value = sn;
-    document.getElementById('qtyBuku').value = qty;
-    document.getElementById('clearSearchBtn').style.display = 'block';
-    document.getElementById('customDropdown').style.display = 'none';
-    document.getElementById('searchLokasi').focus();
-  }
-
-  function resetPencarian() {
-    ['searchInput', 'assetNo', 'assetDesc', 'assetSn', 'qtyBuku'].forEach(id => document.getElementById(id).value = '');
-    document.getElementById('clearSearchBtn').style.display = 'none';
-    document.getElementById('customDropdown').style.display = 'none';
-    document.getElementById('searchInput').focus();
-  }
-
-  function cariLokasi() {
-    const text = document.getElementById('searchLokasi').value.toLowerCase();
-    const box = document.getElementById('dropdownLokasi');
-    const filtered = listLokasi.filter(l => l.id.toLowerCase().includes(text) || l.desc.toLowerCase().includes(text));
-
-    box.style.display = 'block';
-    if (filtered.length === 0) {
-      box.innerHTML = '<div class="dropdown-item" style="color:#e74c3c;text-align:center;">Lokasi tidak ditemukan</div>';
-      return;
-    }
-
-    let html = '';
-    filtered.forEach(loc => {
-      let safeId = loc.id.replace(/'/g, "\\'");
-      let safeDesc = loc.desc.replace(/'/g, "\\'");
-      html += `<div class="dropdown-item" onclick="pilihLokasi('${safeId}', '${safeDesc}')">
-        <strong>${loc.id}</strong>
-        <span>${loc.desc}</span>
-      </div>`;
-    });
-    box.innerHTML = html;
-  }
-
-  function pilihLokasi(id, desc) {
-    document.getElementById('searchLokasi').value = `${id} - ${desc}`;
-    document.getElementById('kodeLokasiHidden').value = `${id} - ${desc}`;
-    document.getElementById('dropdownLokasi').style.display = 'none';
-    document.getElementById('qtyFisik').focus();
-  }
-
-  function previewUploadFoto(event, previewId, nameId, boxId, type) {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    document.getElementById(nameId).innerHTML = `OK <i class="fa-solid fa-check"></i><br><span style="font-size:10px;color:#27ae60;">(Ketuk ganti)</span>`;
-    document.getElementById(boxId).style.borderColor = "var(--main-blue)";
-
-    const reader = new FileReader();
-    reader.onload = function (e) {
-      const img = new Image();
-      img.onload = function () {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        const maxW = 800;
-        let w = img.width, h = img.height;
-        if (w > maxW) {
-          h = Math.round((h * maxW) / w);
-          w = maxW;
-        }
-        canvas.width = w;
-        canvas.height = h;
-        ctx.drawImage(img, 0, 0, w, h);
-        const compressedData = canvas.toDataURL('image/jpeg', 0.8);
-        
-        if (type === 'fisik') photoFisikBase64 = compressedData;
-        else photoTaggingBase64 = compressedData;
-
-        const previewEl = document.getElementById(previewId);
-        previewEl.src = compressedData;
-        previewEl.style.display = 'block';
-      };
-      img.src = e.target.result;
-    };
-    reader.readAsDataURL(file);
-  }
-
-  async function submitOpnameExternal() {
     const assetNo = document.getElementById('assetNo').value;
-    const desc = document.getElementById('assetDesc').value;
-    const sn = document.getElementById('assetSn').value;
-    const bookQty = document.getElementById('qtyBuku').value;
-    const physicQty = document.getElementById('qtyFisik').value.trim();
-    const aktualLoc = document.getElementById('kodeLokasiHidden').value;
-    const tagging = document.getElementById('tagging').value;
-    const status = document.getElementById('status').value;
-    const kondisi = document.getElementById('kondisi').value;
-    const keterangan = document.getElementById('keterangan').value.trim();
+    if (!assetNo) {
+      return showModal('error', 'Aset Belum Dipilih', 'Silakan pilih aset eksternal terlebih dahulu dari kotak pencarian autocomplete.');
+    }
 
-    let errs = [];
-    if (!assetNo) errs.push("• Aset eksternal belum dipilih dari pencarian.");
-    if (!aktualLoc) errs.push("• Lokasi Aktual Eksternal wajib dipilih.");
-    if (physicQty === "") errs.push("• Qty Fisik Aktual wajib diisi.");
-    if (!tagging) errs.push("• Status Tagging belum dipilih.");
-    if (!status) errs.push("• Status Penggunaan belum dipilih.");
-    if (!kondisi) errs.push("• Kondisi Fisik belum dipilih.");
-    if (!photoFisikBase64) errs.push("• Foto Aset (Fisik) wajib diambil.");
-    if (!photoTaggingBase64) errs.push("• Foto Label (Tagging) wajib diambil.");
+    const lokasi = document.getElementById('kodeLokasiHidden').value;
+    if (!lokasi) {
+      return showModal('error', 'Lokasi Wajib Dipilih', 'Silakan pilih kode entitas lokasi aktual eksternal dari daftar.');
+    }
 
-    if (errs.length > 0) {
-      return showModal('error', 'Data Belum Lengkap', errs.join('<br>'), 'left');
+    const fileFisik = document.getElementById('inputFotoFisik').files[0];
+    const fileTagging = document.getElementById('inputFotoTagging').files[0];
+
+    if (!fileFisik && !base64Fisik) {
+      return showModal('error', 'Foto Fisik Wajib', 'Silakan lampirkan foto fisik unit eksternal sebagai bukti sensus.');
     }
 
     showLoading(true);
 
-    try {
-      const response = await fetch("{{ route('opname.external.store') }}", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json",
-          "X-CSRF-TOKEN": csrfToken,
-        },
-        body: JSON.stringify({
-          nomor_asset: assetNo,
-          deskripsi_asset: desc,
-          serial_number: sn,
-          book_qty: bookQty,
-          physic_qty: physicQty,
-          aktual_loc: aktualLoc,
-          kelengkapan_tagging: tagging,
-          status: status,
-          kondisi: kondisi,
-          keterangan: keterangan,
-          foto_fisik: photoFisikBase64,
-          foto_tagging: photoTaggingBase64,
-        })
-      });
+    const formData = new FormData(this);
+    if (base64Fisik && !fileFisik) formData.append('foto_fisik_base64', base64Fisik);
+    if (base64Tagging && !fileTagging) formData.append('foto_tagging_base64', base64Tagging);
 
-      const result = await response.json();
-
-      if (response.ok && result.success) {
-        showModal('success', 'Kerja Bagus!', `Data Stock Opname External aset <b>${assetNo}</b> berhasil tersimpan ke sistem.`, 'center', () => {
-          window.location.reload();
+    fetch("{{ route('opname.external.store') }}", {
+      method: "POST",
+      headers: {
+        "X-CSRF-TOKEN": csrfToken,
+        "Accept": "application/json"
+      },
+      body: formData
+    })
+    .then(res => res.json())
+    .then(res => {
+      showLoading(false);
+      if (res.status === 'success') {
+        showModal('success', 'Opname Eksternal Berhasil Disimpan', res.message || 'Data sensus aset eksternal berhasil direkam ke dalam sistem.', 'center', () => {
+          window.location.href = "{{ route('dashboard') }}";
         });
       } else {
-        throw new Error(result.message || "Gagal menyimpan data.");
+        showModal('error', 'Gagal Menyimpan', res.message || 'Terjadi kendala saat memproses sensus eksternal.');
       }
-    } catch (err) {
-      showModal('error', 'Sistem Gagal', err.message);
-    } finally {
+    })
+    .catch(err => {
       showLoading(false);
-    }
-  }
-
-  // Tutup dropdown saat klik di luar
-  document.addEventListener('click', function (e) {
-    if (e.target.id !== 'searchInput' && e.target.id !== 'customDropdown') {
-      const cd = document.getElementById('customDropdown');
-      if (cd) cd.style.display = 'none';
-    }
-    if (e.target.id !== 'searchLokasi' && e.target.id !== 'dropdownLokasi') {
-      const dl = document.getElementById('dropdownLokasi');
-      if (dl) dl.style.display = 'none';
-    }
+      console.error(err);
+      showModal('error', 'Kesalahan Sistem', 'Tidak dapat terhubung ke server. Silakan coba kembali.');
+    });
   });
 </script>
 @endpush

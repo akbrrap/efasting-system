@@ -38,6 +38,7 @@ Route::middleware('auth')->group(function () {
     // API Helper untuk Pencarian Barcode & Lokasi
     Route::get('/api/assets/search', [AssetController::class, 'apiSearch'])->name('api.assets.search');
     Route::get('/api/assets/locations', [AssetController::class, 'apiLocations'])->name('api.assets.locations');
+    Route::get('/api/lokasi/search', [AssetController::class, 'apiSearchLocations'])->name('api.lokasi.search');
 
     // 2. Stock Opname Internal (ADMINISTRATOR & INTERNAL)
     Route::middleware('role:ADMINISTRATOR,INTERNAL')->group(function () {
@@ -51,29 +52,32 @@ Route::middleware('auth')->group(function () {
         Route::post('/opname/external', [OpnameController::class, 'storeExternal'])->name('opname.external.store');
     });
 
-    // 4. Menu Khusus Administrator
+    // 4. Menu Khusus Administrator & Internal
+    Route::middleware('role:ADMINISTRATOR,INTERNAL')->group(function () {
+        // Audit Trail (Bisa diakses Admin & Auditor Internal)
+        Route::get('/audit-trail', [OpnameController::class, 'auditTrail'])->name('opname.audit_trail');
+        Route::get('/api/audit-trail/history', [OpnameController::class, 'apiAssetHistory'])->name('api.audit.history');
+
+        // Reports & Export
+        Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+        Route::get('/reports/export', [ReportController::class, 'export'])->name('reports.export');
+    });
+
+    // 5. Menu Khusus Administrator Saja
     Route::middleware('role:ADMINISTRATOR')->group(function () {
         // Master Assets & Single Operations
         Route::get('/assets', [AssetController::class, 'index'])->name('asset.index');
         Route::get('/assets/create', [AssetController::class, 'create'])->name('asset.create');
         Route::post('/assets', [AssetController::class, 'store'])->name('asset.store');
         Route::get('/assets/adjustment', [AssetController::class, 'adjustment'])->name('asset.adjustment');
-        Route::post('/assets/adjustment', [AssetController::class, 'update'])->name('asset.update');
+        Route::post('/assets/adjustment', [AssetController::class, 'update'])->name('asset.adjustment.update');
         Route::get('/assets/retirement', [AssetController::class, 'retirement'])->name('asset.retirement');
-        Route::post('/assets/retirement', [AssetController::class, 'processRetirement'])->name('asset.retirement.process');
+        Route::post('/assets/retirement', [AssetController::class, 'processRetirement'])->name('asset.retirement.store');
 
         // Bulk Excel / CSV Operations (Backend Processing)
         Route::post('/assets/mass-addition', [AssetController::class, 'uploadMassAddition'])->name('asset.mass_addition');
         Route::post('/assets/mass-retirement', [AssetController::class, 'uploadMassRetirement'])->name('asset.mass_retirement');
         Route::post('/assets/mass-adjustment', [AssetController::class, 'uploadMassAdjustment'])->name('asset.mass_adjustment');
         Route::get('/assets/template/{type}', [AssetController::class, 'downloadTemplate'])->name('asset.template');
-
-        // Audit Trail
-        Route::get('/audit-trail', [OpnameController::class, 'auditTrail'])->name('audit.index');
-        Route::get('/api/audit-trail/history', [OpnameController::class, 'apiAssetHistory'])->name('api.audit.history');
-
-        // Reports & Export
-        Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
-        Route::get('/reports/export', [ReportController::class, 'export'])->name('reports.export');
     });
 });

@@ -1,235 +1,265 @@
 @extends('layouts.app')
 
-@section('title', 'Fixed Asset Addition')
+@section('title', 'Mass Asset Addition')
 
 @section('content')
-<div id="viewAddAsset" class="view-section active">
-  @include('partials.header', ['title' => 'Fixed Asset Addition'])
+<div style="max-width: 960px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px;">
 
-  <div class="form-content">
-    <!-- 1. Mass Addition Excel Section (Backend Processed) -->
-    <div style="background: var(--main-blue-light); padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #cce0f0;">
-      <h4 style="font-size: 13px; color: var(--main-blue); margin-bottom: 8px; font-weight: 600;">
-        <i class="fa-solid fa-file-excel" style="color:#27ae60;"></i> Tambah Aset Masal (Excel / CSV Backend Upload)
-      </h4>
-      <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 12px; line-height: 1.4;">
-        Gunakan template resmi untuk menambahkan banyak aset sekaligus. Data diproses secara aman di backend server.
-      </p>
+  <!-- 1. Mass Addition Excel Section -->
+  <div class="card-panel" style="background: linear-gradient(135deg, rgba(239, 246, 255, 0.8) 0%, rgba(248, 250, 252, 0.95) 100%); border: 1.5px solid var(--primary-200);">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+      <div style="max-width: 580px;">
+        <div style="display: inline-flex; align-items: center; gap: 6px; background: var(--success-light); color: var(--success-600); padding: 4px 10px; border-radius: 20px; font-size: 11.5px; font-weight: 700; margin-bottom: 8px;">
+          <i class="fa-solid fa-file-excel"></i> Batch Upload
+        </div>
+        <h3 style="font-size: 17px; font-weight: 800; color: var(--primary-800); margin-bottom: 4px;">
+          Import Masal Master Aset via Excel (.xlsx)
+        </h3>
+        <p style="font-size: 13px; color: var(--slate-600); line-height: 1.5;">
+          Gunakan template Microsoft Excel resmi untuk mengunggah ratusan master aset sekaligus secara aman dan tervalidasi di backend server.
+        </p>
+      </div>
 
-      <div class="grid-2" style="gap: 10px;">
-        <a href="{{ route('asset.template', 'addition') }}" class="btn-primary" style="background:#27ae60; font-size:11px; padding:8px 5px; text-decoration:none; display:flex; align-items:center; justify-content:center;">
-          <i class="fa-solid fa-download" style="margin-right:4px;"></i> Unduh Template
+      <div style="display: flex; gap: 10px;">
+        <a href="{{ route('asset.template', 'addition') }}" class="btn-enterprise btn-enterprise-outline" style="background: #ffffff;">
+          <i class="fa-solid fa-download" style="color: var(--success-600);"></i> Unduh Template Excel
         </a>
 
-        <label class="btn-primary" style="background:var(--main-yellow); color:var(--main-blue); font-size:11px; padding:8px 5px; cursor:pointer; text-align:center; display:flex; align-items:center; justify-content:center; margin:0;">
-          <i class="fa-solid fa-file-arrow-up" style="margin-right:4px;"></i> Upload File
+        <label class="btn-enterprise btn-enterprise-primary" style="cursor: pointer; margin: 0;">
+          <i class="fa-solid fa-cloud-arrow-up"></i> Upload File .xlsx
           <input type="file" id="fileMassAdd" accept=".xlsx, .xls, .csv" style="display: none;" onchange="handleMassAdditionUpload(event)">
         </label>
       </div>
     </div>
+  </div>
 
-    <div style="text-align: center; margin: 15px 0 10px; position: relative;">
-      <hr style="border: 0; border-top: 1px solid var(--border-color);">
-      <span style="position: absolute; top: -10px; left: 50%; transform: translateX(-50%); background: #fff; padding: 0 10px; font-size: 11px; color: var(--text-muted); font-weight: 600;">
-        ATAU INPUT MANUAL
-      </span>
+  <!-- 2. Manual Single Asset Form -->
+  <div class="card-panel">
+    <div class="card-header-clean">
+      <div>
+        <h2 class="card-title-text">
+          <i class="fa-solid fa-plus-circle" style="color: var(--primary-600);"></i> Registrasi Aset Baru (Manual Entry)
+        </h2>
+        <p class="card-subtitle-text">Isi rincian informasi aset tetap untuk mendaftarkannya ke dalam master database</p>
+      </div>
     </div>
 
-    <!-- 2. Single Asset Addition Form -->
     <form id="formAddAsset" action="{{ route('asset.store') }}" method="POST">
       @csrf
 
-      <div class="form-group">
-        <label>Kategori Database <span style="color:red">*</span></label>
-        <select id="addKategori" name="kategori_db" class="form-control" required>
+      <div class="form-group-modern">
+        <label for="addKategori" class="form-label-modern">Kategori Database Aset <span class="req">*</span></label>
+        <select id="addKategori" name="kategori_db" class="form-control-modern" required>
           <option value="" disabled selected>Pilih Kategori Database...</option>
-          <option value="INTERNAL">🏭 Internal Database (Pabrik / Kantor)</option>
-          <option value="EXTERNAL">🚚 External Database (Vendor / Distributor)</option>
+          <option value="INTERNAL">🏭 Internal Database (Pabrik & Kantor Perusahaan)</option>
+          <option value="EXTERNAL">🚚 External Database (Vendor & Gudang Distributor)</option>
         </select>
       </div>
 
-      <div class="grid-2">
-        <div class="form-group">
-          <label>Nomor Aset <span style="color:red">*</span></label>
-          <input type="text" id="addNo" name="nomor_asset" class="form-control" placeholder="Contoh: 10001234" required>
+      <div class="form-grid-2">
+        <div class="form-group-modern">
+          <label for="addNo" class="form-label-modern">Nomor Aset Register <span class="req">*</span></label>
+          <div class="input-container">
+            <i class="fa-solid fa-hashtag input-icon-left"></i>
+            <input type="text" id="addNo" name="nomor_asset" class="form-control-modern" placeholder="Contoh: 10001007" required>
+          </div>
         </div>
-        <div class="form-group">
-          <label>Serial Number <span style="color:red">*</span></label>
-          <input type="text" id="addSn" name="serial_number" class="form-control" placeholder="Ketik strip '-' jika tidak ada" required>
+
+        <div class="form-group-modern">
+          <label for="addSn" class="form-label-modern">Serial Number (SN) <span class="req">*</span></label>
+          <div class="input-container">
+            <i class="fa-solid fa-barcode input-icon-left"></i>
+            <input type="text" id="addSn" name="serial_number" class="form-control-modern" placeholder="Ketik strip '-' jika tidak ada SN" required>
+          </div>
         </div>
       </div>
 
-      <div class="form-group">
-        <label>Deskripsi Aset <span style="color:red">*</span></label>
-        <textarea id="addDesc" name="deskripsi_asset" class="form-control" rows="2" placeholder="Nama / Deskripsi lengkap aset..." required></textarea>
-      </div>
-
-      <div class="grid-2">
-        <div class="form-group">
-          <label>Cost Center <span style="color:red">*</span></label>
-          <input type="text" id="addCc" name="cost_center" class="form-control" placeholder="Contoh: CC-LOG-01" required>
-        </div>
-        <div class="form-group">
-          <label>Qty Buku <span style="color:red">*</span></label>
-          <input type="number" id="addQty" name="qty_buku" class="form-control" placeholder="Jumlah unit..." min="1" required>
+      <div class="form-group-modern">
+        <label for="addDesc" class="form-label-modern">Deskripsi Lengkap Aset <span class="req">*</span></label>
+        <div class="input-container">
+          <i class="fa-solid fa-box-open input-icon-left"></i>
+          <input type="text" id="addDesc" name="deskripsi_asset" class="form-control-modern" placeholder="Nama, tipe, dan spesifikasi aset..." required>
         </div>
       </div>
 
-      <div class="grid-2">
-        <div class="form-group">
-          <label>Cap Date <span style="color:red">*</span></label>
-          <input type="date" id="addCap" name="cap_date" class="form-control" required>
+      <div class="form-grid-2">
+        <div class="form-group-modern">
+          <label for="addCc" class="form-label-modern">Cost Center <span class="req">*</span></label>
+          <div class="input-container">
+            <i class="fa-solid fa-building input-icon-left"></i>
+            <input type="text" id="addCc" name="cost_center" class="form-control-modern" placeholder="Contoh: CC-LOG-01" required>
+          </div>
         </div>
-        <div class="form-group">
-          <label>Alokasi / Lokasi <span style="color:red">*</span></label>
-          <input type="text" id="addAlloc" name="allocation" class="form-control" placeholder="Contoh: Palembang" required>
+
+        <div class="form-group-modern">
+          <label for="addQty" class="form-label-modern">Kuantitas Buku (Qty) <span class="req">*</span></label>
+          <div class="input-container">
+            <i class="fa-solid fa-cubes input-icon-left"></i>
+            <input type="number" id="addQty" name="qty_buku" class="form-control-modern" placeholder="Jumlah unit..." min="1" required>
+          </div>
         </div>
       </div>
 
-      <div class="grid-2">
-        <div class="form-group">
-          <label>Nilai Perolehan (Rp)</label>
-          <input type="text" id="addNilai" class="form-control" placeholder="0" onkeyup="formatLiveRupiah(this); hitungNBV();">
-          <input type="hidden" id="rawNilai" name="nilai_perolehan" value="0">
+      <div class="form-grid-2">
+        <div class="form-group-modern">
+          <label for="addCap" class="form-label-modern">Capitalized Date (Cap Date) <span class="req">*</span></label>
+          <div class="input-container">
+            <i class="fa-solid fa-calendar input-icon-left"></i>
+            <input type="date" id="addCap" name="cap_date" class="form-control-modern" required>
+          </div>
         </div>
-        <div class="form-group">
-          <label>Akum. Depresiasi (Rp)</label>
-          <input type="text" id="addDepresiasi" class="form-control" placeholder="0" onkeyup="formatLiveRupiah(this); hitungNBV();">
-          <input type="hidden" id="rawDepresiasi" name="akumulasi_depresiasi" value="0">
+
+        <div class="form-group-modern">
+          <label for="addAlloc" class="form-label-modern">Alokasi Wilayah / Lokasi <span class="req">*</span></label>
+          <div class="input-container">
+            <i class="fa-solid fa-location-dot input-icon-left"></i>
+            <input type="text" id="addAlloc" name="allocation" class="form-control-modern" placeholder="Contoh: Palembang, Warehouse A" required>
+          </div>
         </div>
       </div>
 
-      <div class="form-group">
-        <label>Net Book Value / NBV (Rp)</label>
-        <input type="text" id="addNbv" class="form-control" readonly placeholder="0" style="background:#f8f9fa; font-weight:600; color:#27ae60;">
-        <input type="hidden" id="rawNbv" name="nbv" value="0">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px;">
+        <div class="form-group-modern">
+          <label for="addNilai" class="form-label-modern">Nilai Perolehan (Rp)</label>
+          <div class="input-container">
+            <i class="fa-solid fa-rupiah-sign input-icon-left"></i>
+            <input type="text" id="addNilai" class="form-control-modern" placeholder="0" onkeyup="formatLiveRupiah(this); hitungNBV();">
+            <input type="hidden" id="rawNilai" name="nilai_perolehan" value="0">
+          </div>
+        </div>
+
+        <div class="form-group-modern">
+          <label for="addDepresiasi" class="form-label-modern">Akumulasi Depresiasi (Rp)</label>
+          <div class="input-container">
+            <i class="fa-solid fa-chart-line-down input-icon-left"></i>
+            <input type="text" id="addDepresiasi" class="form-control-modern" placeholder="0" onkeyup="formatLiveRupiah(this); hitungNBV();">
+            <input type="hidden" id="rawDepresiasi" name="akumulasi_depresiasi" value="0">
+          </div>
+        </div>
+
+        <div class="form-group-modern">
+          <label class="form-label-modern">Net Book Value / NBV (Rp)</label>
+          <div class="input-container">
+            <i class="fa-solid fa-wallet input-icon-left" style="color: var(--success-600);"></i>
+            <input type="text" id="addNbv" class="form-control-modern" readonly placeholder="0" style="font-weight: 700; color: var(--success-600); background: var(--success-light);">
+            <input type="hidden" id="rawNbv" name="nbv" value="0">
+          </div>
+        </div>
       </div>
 
-      <button type="button" id="btnAddSubmit" class="btn-primary" onclick="submitSingleAsset()">
-        <i class="fa-solid fa-plus-circle"></i> Simpan Aset ke Database
-      </button>
+      <div style="margin-top: 24px; display: flex; gap: 12px; justify-content: flex-end;">
+        <a href="{{ route('asset.index') }}" class="btn-enterprise btn-enterprise-outline">
+          Batal & Kembali
+        </a>
+        <button type="submit" id="btnSubmitAdd" class="btn-enterprise btn-enterprise-primary" style="min-width: 180px;">
+          <i class="fa-solid fa-save"></i> Simpan ke Database
+        </button>
+      </div>
     </form>
   </div>
+
 </div>
 @endsection
 
 @push('scripts')
 <script>
   function hitungNBV() {
-    const rawNp = document.getElementById('addNilai').value.replace(/[^0-9]/g, '');
-    const rawAd = document.getElementById('addDepresiasi').value.replace(/[^0-9]/g, '');
-    
-    const np = Number(rawNp) || 0;
-    const ad = Number(rawAd) || 0;
-    const nbv = np - ad;
+    let nilai = Number(document.getElementById('addNilai').value.replace(/[^0-9-]/g, '')) || 0;
+    let dep = Number(document.getElementById('addDepresiasi').value.replace(/[^0-9-]/g, '')) || 0;
+    let nbv = nilai - dep;
 
-    document.getElementById('rawNilai').value = np;
-    document.getElementById('rawDepresiasi').value = ad;
+    document.getElementById('rawNilai').value = nilai;
+    document.getElementById('rawDepresiasi').value = dep;
     document.getElementById('rawNbv').value = nbv;
-    document.getElementById('addNbv').value = formatRibuan(nbv);
+    document.getElementById('addNbv').value = (nbv < 0 ? '-' : '') + Math.abs(nbv).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
   }
 
-  async function submitSingleAsset() {
-    const kat = document.getElementById('addKategori').value;
-    const no = document.getElementById('addNo').value.trim();
-    const desc = document.getElementById('addDesc').value.trim();
-    const sn = document.getElementById('addSn').value.trim();
-    const cc = document.getElementById('addCc').value.trim();
-    const qty = document.getElementById('addQty').value.trim();
-    const cap = document.getElementById('addCap').value;
-    const alloc = document.getElementById('addAlloc').value.trim();
-    const np = Number(document.getElementById('rawNilai').value) || 0;
-    const ad = Number(document.getElementById('rawDepresiasi').value) || 0;
-    const nbv = Number(document.getElementById('rawNbv').value) || 0;
-
-    let errs = [];
-    if (!kat) errs.push("• Kategori Database belum dipilih.");
-    if (!no) errs.push("• Nomor Aset wajib diisi.");
-    if (!desc) errs.push("• Deskripsi Aset wajib diisi.");
-    if (!sn) errs.push("• Serial Number wajib diisi (Ketik strip '-' jika tidak ada).");
-    if (!cc) errs.push("• Cost Center wajib diisi.");
-    if (!qty || Number(qty) < 1) errs.push("• Qty Buku minimal 1.");
-    if (!cap) errs.push("• Cap Date wajib dipilih.");
-    if (!alloc) errs.push("• Alokasi wajib diisi.");
-
-    if (errs.length > 0) {
-      return showModal('error', 'Data Belum Lengkap', errs.join('<br>'), 'left');
-    }
-
+  // Handle Form Single Asset Submission via AJAX
+  document.getElementById('formAddAsset').addEventListener('submit', function (e) {
+    e.preventDefault();
+    hitungNBV();
     showLoading(true);
 
-    try {
-      const res = await fetch("{{ route('asset.store') }}", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json",
-          "X-CSRF-TOKEN": csrfToken,
-        },
-        body: JSON.stringify({
-          kategori_db: kat,
-          nomor_asset: no,
-          deskripsi_asset: desc,
-          serial_number: sn,
-          cost_center: cc,
-          qty_buku: qty,
-          cap_date: cap,
-          allocation: alloc,
-          nilai_perolehan: np,
-          akumulasi_depresiasi: ad,
-          nbv: nbv,
-        })
-      });
+    const formData = new FormData(this);
 
-      const json = await res.json();
-
-      if (res.ok && json.success) {
-        showModal('success', 'Kerja Bagus!', json.message, 'center', () => {
+    fetch("{{ route('asset.store') }}", {
+      method: "POST",
+      headers: {
+        "X-CSRF-TOKEN": csrfToken,
+        "Accept": "application/json"
+      },
+      body: formData
+    })
+    .then(res => res.json())
+    .then(res => {
+      showLoading(false);
+      if (res.status === 'success') {
+        showModal('success', 'Aset Berhasil Didaftarkan', res.message, 'center', () => {
           window.location.href = "{{ route('asset.index') }}";
         });
       } else {
-        throw new Error(json.message || "Gagal menyimpan aset baru.");
+        showModal('error', 'Gagal Menambah Aset', res.message || 'Terjadi kesalahan validasi.');
       }
-    } catch (err) {
-      showModal('error', 'Gagal Tambah Aset', err.message);
-    } finally {
+    })
+    .catch(err => {
       showLoading(false);
-    }
-  }
+      console.error(err);
+      showModal('error', 'Kesalahan Sistem', 'Tidak dapat terhubung ke server.');
+    });
+  });
 
-  async function handleMassAdditionUpload(event) {
+  // Handle Mass Addition Upload
+  function handleMassAdditionUpload(event) {
     const file = event.target.files[0];
     if (!file) return;
 
+    const ext = file.name.split('.').pop().toLowerCase();
+    if (!['xlsx', 'xls', 'csv'].includes(ext)) {
+      showModal('error', 'Format Tidak Didukung', 'Harap unggah file spreadsheet berekstensi .xlsx, .xls, atau .csv');
+      event.target.value = '';
+      return;
+    }
+
     showLoading(true);
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append('file_excel', file);
 
-    try {
-      const res = await fetch("{{ route('asset.mass_addition') }}", {
-        method: "POST",
-        headers: {
-          "Accept": "application/json",
-          "X-CSRF-TOKEN": csrfToken,
-        },
-        body: formData
-      });
+    fetch("{{ route('asset.mass_addition') }}", {
+      method: "POST",
+      headers: {
+        "X-CSRF-TOKEN": csrfToken,
+        "Accept": "application/json"
+      },
+      body: formData
+    })
+    .then(res => res.json())
+    .then(res => {
+      showLoading(false);
+      event.target.value = '';
 
-      const json = await res.json();
-
-      if (res.ok && json.success) {
-        showModal('success', 'Upload Masal Berhasil!', json.message, 'center', () => {
+      if (res.status === 'success') {
+        let msg = `<strong>${res.message}</strong><br><br>`;
+        msg += `Total Baris: ${res.total_rows || 0}<br>`;
+        msg += `Berhasil Dimasukkan: <strong style="color:var(--success-600);">${res.inserted || 0}</strong><br>`;
+        if (res.skipped > 0) {
+          msg += `Dilewati (Duplikat): <strong style="color:var(--warning-500);">${res.skipped}</strong><br>`;
+        }
+        if (res.errors && res.errors.length > 0) {
+          msg += `<br><span style="color:var(--danger-500); font-weight:700;">Catatan Error:</span><br>${res.errors.slice(0, 5).join('<br>')}`;
+        }
+        showModal('success', 'Mass Addition Selesai', msg, 'left', () => {
           window.location.href = "{{ route('asset.index') }}";
         });
       } else {
-        throw new Error(json.message || "Gagal memproses file upload.");
+        showModal('error', 'Gagal Upload Mass Addition', res.message || 'Gagal memproses file.');
       }
-    } catch (err) {
-      showModal('error', 'Gagal Upload Masal', err.message);
-    } finally {
-      document.getElementById('fileMassAdd').value = '';
+    })
+    .catch(err => {
       showLoading(false);
-    }
+      event.target.value = '';
+      console.error(err);
+      showModal('error', 'Kesalahan Server', 'Gagal mengunggah file spreadsheet ke server.');
+    });
   }
 </script>
 @endpush

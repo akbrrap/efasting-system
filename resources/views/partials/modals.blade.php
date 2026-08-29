@@ -1,41 +1,62 @@
-<!-- Modal Pesan Kustom -->
-<div class="modal-overlay" id="customModal" style="display: none;">
-  <div class="modal-box center-text" id="modalBoxElement">
-    <div id="modalIcon"></div>
-    <h3 class="modal-title" id="modalTitle">Title</h3>
-    <div class="modal-desc" id="modalDesc">Description goes here.</div>
-    <button id="modalBtn" class="btn-modal" onclick="closeModal()">OK</button>
-  </div>
-</div>
-
-<!-- Modal Konfirmasi Disposal / Aksi Kritis -->
-<div class="modal-overlay" id="confirmModal" style="display: none;">
-  <div class="modal-box center-text">
-    <div class="modal-icon"><i class="fa-solid fa-triangle-exclamation warning"></i></div>
-    <h3 class="modal-title" id="confirmTitle">Konfirmasi Disposal</h3>
-    <div class="modal-desc" id="confirmDesc"
-      style="text-align: left; background: #fdfbf7; padding:15px; border-radius:8px; border: 1px dashed var(--main-yellow);">
+<!-- 1. Custom Glass Notification Modal -->
+<div class="modal-overlay" id="customModal">
+  <div class="modal-box-glass">
+    <div class="modal-icon-wrapper success" id="modalIconWrapper">
+      <i class="fa-solid fa-check"></i>
     </div>
-    <div class="grid-2">
-      <button class="btn-modal btn-modal-outline" onclick="tutupConfirmModal()">Batal</button>
-      <button class="btn-modal error" id="btnConfirmAction">Ya, Lanjutkan</button>
+    <h3 class="modal-title-text" id="modalTitle">Pemberitahuan</h3>
+    <div class="modal-body-text" id="modalDesc">
+      Pesan notifikasi sistem.
+    </div>
+    <div style="display: flex; justify-content: center; gap: 10px;">
+      <button type="button" class="btn-enterprise btn-enterprise-primary" id="modalBtn" onclick="closeModal()" style="min-width: 140px;">
+        Mengerti
+      </button>
     </div>
   </div>
 </div>
 
-<!-- Modal Preview Foto Dokumentasi -->
-<div class="modal-overlay" id="photoModal" style="display: none;">
-  <div class="modal-box"
-    style="max-width:95%; padding:10px; position:relative; background:transparent; box-shadow:none;">
-    <button onclick="tutupPreviewFoto()"
-      style="position:absolute; top:-10px; right:-10px; background:#e74c3c; color:#fff; border:none; border-radius:50%; width:35px; height:35px; font-size:18px; cursor:pointer; z-index:3001; box-shadow:0 4px 6px rgba(0,0,0,0.2);">
-      <i class="fa-solid fa-xmark"></i>
-    </button>
-    <div style="background:#fff; border-radius:12px; overflow:hidden; padding:5px; text-align:center;">
-      <img id="previewImageModal" src="" alt="Preview Dokumentasi Foto"
-        style="width:100%; max-height:75vh; object-fit:contain; border-radius:8px; background:#f4f7f9; display:none;">
-      <iframe id="previewFrameModal" src=""
-        style="width:100%; height:65vh; border:none; border-radius:8px; background:#f4f7f9; display:none;"></iframe>
+<!-- 2. Custom Confirmation Modal -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal-box-glass">
+    <div class="modal-icon-wrapper error" style="background: var(--warning-light); color: var(--warning-500);">
+      <i class="fa-solid fa-triangle-exclamation"></i>
+    </div>
+    <h3 class="modal-title-text" id="confirmTitle">Konfirmasi Tindakan</h3>
+    <div class="modal-body-text" id="confirmDesc">
+      Apakah Anda yakin ingin melanjutkan proses ini?
+    </div>
+    <div style="display: flex; justify-content: center; gap: 12px;">
+      <button type="button" class="btn-enterprise btn-enterprise-outline" onclick="tutupConfirmModal()" style="min-width: 100px;">
+        Batal
+      </button>
+      <button type="button" class="btn-enterprise btn-enterprise-primary" id="confirmBtnAction" style="min-width: 120px;">
+        Ya, Lanjutkan
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- 3. Photo & Document High-Resolution Preview Modal -->
+<div class="modal-overlay" id="photoModal">
+  <div class="modal-box-glass" style="max-width: 640px; padding: 20px;">
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; border-bottom: 1px solid var(--slate-100); padding-bottom: 10px;">
+      <h3 style="font-size: 15px; font-weight: 700; color: var(--primary-800); display: flex; align-items: center; gap: 8px;">
+        <i class="fa-solid fa-image" style="color: var(--primary-600);"></i> Dokumentasi Foto Opname
+      </h3>
+      <button type="button" class="btn-enterprise-outline" style="width: 32px; height: 32px; padding: 0; border-radius: 50%;" onclick="tutupPreviewFoto()">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <div style="border-radius: var(--radius-md); overflow: hidden; background: var(--slate-900); display: flex; align-items: center; justify-content: center; min-height: 320px; max-height: 500px;">
+      <img id="previewImageModal" src="" alt="Preview Dokumentasi Opname" style="max-width: 100%; max-height: 480px; object-fit: contain; display: block;" onerror="this.src=''; alert('Gagal memuat file foto.');">
+    </div>
+
+    <div style="margin-top: 16px; display: flex; justify-content: flex-end;">
+      <button type="button" class="btn-enterprise btn-enterprise-outline" onclick="tutupPreviewFoto()">
+        Tutup Preview
+      </button>
     </div>
   </div>
 </div>

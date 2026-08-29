@@ -1,301 +1,347 @@
 @extends('layouts.app')
 
-@section('title', 'Fixed Asset Retirements')
+@section('title', 'Mass Asset Retirement')
 
 @section('content')
-<div id="viewRetirement" class="view-section active">
-  @include('partials.header', ['title' => 'Fixed Asset Retirements'])
+<div style="max-width: 960px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px;">
 
-  <div class="form-content">
-    <!-- 1. Mass Retirement Excel Section -->
-    <div style="background: var(--main-blue-light); padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #cce0f0;">
-      <h4 style="font-size: 13px; color: var(--main-blue); margin-bottom: 8px; font-weight: 600;">
-        <i class="fa-solid fa-trash-can" style="color:#e74c3c;"></i> Hapus / Potong Aset Masal (Excel / CSV Backend Upload)
-      </h4>
-      <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 12px; line-height: 1.4;">
-        Gunakan template disposal masal untuk menghapus aset atau memotong kuantiti stok dari sistem SAP. Diproses di backend server.
-      </p>
+  <!-- 1. Mass Retirement Excel Section -->
+  <div class="card-panel" style="background: linear-gradient(135deg, rgba(254, 242, 242, 0.6) 0%, rgba(248, 250, 252, 0.95) 100%); border: 1.5px solid var(--danger-light);">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+      <div style="max-width: 580px;">
+        <div style="display: inline-flex; align-items: center; gap: 6px; background: var(--danger-light); color: var(--danger-600); padding: 4px 10px; border-radius: 20px; font-size: 11.5px; font-weight: 700; margin-bottom: 8px;">
+          <i class="fa-solid fa-trash-can"></i> Batch Asset Disposal
+        </div>
+        <h3 style="font-size: 17px; font-weight: 800; color: var(--danger-600); margin-bottom: 4px;">
+          Disposal / Pemotongan Aset Masal via Excel (.xlsx)
+        </h3>
+        <p style="font-size: 13px; color: var(--slate-600); line-height: 1.5;">
+          Gunakan template disposal masal untuk menghapus aset yang sudah afkir atau memotong kuantiti stok dari sistem secara tersinkronisasi.
+        </p>
+      </div>
 
-      <div class="grid-2" style="gap: 10px;">
-        <a href="{{ route('asset.template', 'retirement') }}" class="btn-primary" style="background:#27ae60; font-size:11px; padding:8px 5px; text-decoration:none; display:flex; align-items:center; justify-content:center;">
-          <i class="fa-solid fa-download" style="margin-right:4px;"></i> Unduh Template
+      <div style="display: flex; gap: 10px;">
+        <a href="{{ route('asset.template', 'retirement') }}" class="btn-enterprise btn-enterprise-outline" style="background: #ffffff;">
+          <i class="fa-solid fa-download" style="color: var(--danger-600);"></i> Unduh Template Excel
         </a>
 
-        <label class="btn-primary" style="background:var(--main-yellow); color:var(--main-blue); font-size:11px; padding:8px 5px; cursor:pointer; text-align:center; display:flex; align-items:center; justify-content:center; margin:0;">
-          <i class="fa-solid fa-file-arrow-up" style="margin-right:4px;"></i> Upload File
+        <label class="btn-enterprise btn-enterprise-danger" style="cursor: pointer; margin: 0;">
+          <i class="fa-solid fa-cloud-arrow-up"></i> Upload Hasil .xlsx
           <input type="file" id="fileMassRet" accept=".xlsx, .xls, .csv" style="display: none;" onchange="handleMassRetirementUpload(event)">
         </label>
       </div>
     </div>
+  </div>
 
-    <div style="text-align: center; margin: 15px 0 10px; position: relative;">
-      <hr style="border: 0; border-top: 1px solid var(--border-color);">
-      <span style="position: absolute; top: -10px; left: 50%; transform: translateX(-50%); background: #fff; padding: 0 10px; font-size: 11px; color: var(--text-muted); font-weight: 600;">
-        ATAU DISPOSAL SATUAN
-      </span>
+  <!-- 2. Manual Retirement Form -->
+  <div class="card-panel">
+    <div class="card-header-clean">
+      <div>
+        <h2 class="card-title-text">
+          <i class="fa-solid fa-circle-exclamation" style="color: var(--danger-500);"></i> Proses Disposal Satuan (Scrap / Sale / Write-Off)
+        </h2>
+        <p class="card-subtitle-text">Pilih aset yang ingin di-retire, tentukan jumlah kuantiti yang dipotong, nomor dokumen SAP, dan alasan disposal</p>
+      </div>
     </div>
 
-    <!-- 2. Single Retirement Form -->
     <form id="formRetirement">
       @csrf
 
-      <div class="form-group">
-        <label>Kategori Database <span style="color:red">*</span></label>
-        <select id="retKategori" name="kategori_db" class="form-control" onchange="resetPencarianRet()">
-          <option value="INTERNAL" selected>🏭 Internal Database</option>
-          <option value="EXTERNAL">🚚 External Database</option>
+      <div class="form-group-modern">
+        <label for="retKategori" class="form-label-modern">Kategori Database <span class="req">*</span></label>
+        <select id="retKategori" name="kategori_db" class="form-control-modern" onchange="resetPencarianRet()">
+          <option value="INTERNAL" selected>🏭 Internal Database (Pabrik & Kantor)</option>
+          <option value="EXTERNAL">🚚 External Database (Vendor & Distributor)</option>
         </select>
       </div>
 
       <!-- Pencarian Aset -->
-      <div class="form-group">
-        <label>Pencarian Aset yang Akan Di-disposal</label>
-        <div class="input-wrapper">
-          <i class="fa-solid fa-magnifying-glass icon-left"></i>
-          <input type="text" id="searchRetInput" class="form-control" style="padding-right: 35px;"
-            placeholder="Ketik No / Nama / SN..." autocomplete="off" onkeyup="cariAsetRet()" onfocus="bukaDropdownRet()">
-          <i class="fa-solid fa-circle-xmark icon-right" id="clearSearchRetBtn" style="display:none; color:#e74c3c; font-size:18px; cursor:pointer;" onclick="resetPencarianRet()"></i>
+      <div class="form-group-modern">
+        <label for="searchRetInput" class="form-label-modern">Cari Aset yang Akan Di-disposal <span class="req">*</span></label>
+        <div class="input-container">
+          <i class="fa-solid fa-magnifying-glass input-icon-left"></i>
+          <input type="text" id="searchRetInput" class="form-control-modern" placeholder="Ketik No Aset / Nama / Serial Number..." autocomplete="off" onkeyup="cariAsetRet()" onfocus="bukaDropdownRet()">
+          <i class="fa-solid fa-circle-xmark" id="clearSearchRetBtn" style="display:none; position: absolute; right: 14px; color: var(--danger-500); font-size: 16px; cursor: pointer;" onclick="resetPencarianRet()"></i>
         </div>
-        <div id="dropdownRetirement" class="dropdown-list" style="display:none;"></div>
+        <div id="dropdownRetirement" class="search-dropdown-box"></div>
         <input type="hidden" id="retAssetNo" name="nomor_asset">
       </div>
 
-      <div class="form-group">
-        <label>Deskripsi Aset</label>
-        <input type="text" id="retDesc" class="form-control" readonly placeholder="-">
-      </div>
-
-      <div class="grid-2">
-        <div class="form-group">
-          <label>Qty Saat Ini</label>
-          <input type="number" id="retQtyCurrent" class="form-control" readonly placeholder="0">
-        </div>
-        <div class="form-group">
-          <label>NBV Saat Ini (Rp)</label>
-          <input type="text" id="retNbvCurrent" class="form-control" readonly placeholder="0" style="color:#27ae60; font-weight:600;">
+      <div class="form-group-modern">
+        <label class="form-label-modern">Deskripsi Aset Terpilih</label>
+        <div class="input-container">
+          <i class="fa-solid fa-box-open input-icon-left"></i>
+          <input type="text" id="retDesc" class="form-control-modern" readonly placeholder="Otomatis terisi saat aset dipilih...">
         </div>
       </div>
 
-      <div class="grid-2">
-        <div class="form-group">
-          <label>Qty Disposal <span style="color:red">*</span></label>
-          <input type="number" id="retQtyInput" name="qty_disposal" class="form-control" placeholder="Qty dihapus..." min="1" required>
+      <div class="form-grid-2">
+        <div class="form-group-modern">
+          <label class="form-label-modern">Kuantitas Saat Ini di Sistem</label>
+          <div class="input-container">
+            <i class="fa-solid fa-cubes input-icon-left"></i>
+            <input type="number" id="retQtyCurrent" class="form-control-modern" readonly placeholder="0">
+          </div>
         </div>
-        <div class="form-group">
-          <label>Nomor Dokumen SAP <span style="color:red">*</span></label>
-          <input type="text" id="retDocSap" name="dokumen_sap" class="form-control" placeholder="No Dokumen SAP..." required>
+
+        <div class="form-group-modern">
+          <label class="form-label-modern">Net Book Value (NBV) Saat Ini</label>
+          <div class="input-container">
+            <i class="fa-solid fa-wallet input-icon-left" style="color: var(--success-600);"></i>
+            <input type="text" id="retNbvCurrent" class="form-control-modern" readonly placeholder="0" style="color: var(--success-600); font-weight: 700; background: var(--success-light);">
+          </div>
         </div>
       </div>
 
-      <div class="form-group">
-        <label>Catatan / Alasan Retirement <span style="color:red">*</span></label>
-        <textarea id="retCatatan" name="catatan" class="form-control" rows="2" placeholder="Contoh: Afkir, Kerusakan fatal, Penjualan aset..." required></textarea>
+      <div class="form-grid-2">
+        <div class="form-group-modern">
+          <label for="retQtyInput" class="form-label-modern">Kuantitas yang Di-disposal <span class="req">*</span></label>
+          <div class="input-container">
+            <i class="fa-solid fa-calculator input-icon-left" style="color: var(--danger-500);"></i>
+            <input type="number" id="retQtyInput" name="qty_disposal" class="form-control-modern" placeholder="Jumlah unit yang dihapus..." min="1" required>
+          </div>
+        </div>
+
+        <div class="form-group-modern">
+          <label for="retDocSap" class="form-label-modern">Nomor Referensi Dokumen SAP <span class="req">*</span></label>
+          <div class="input-container">
+            <i class="fa-solid fa-file-contract input-icon-left"></i>
+            <input type="text" id="retDocSap" name="dokumen_sap" class="form-control-modern" placeholder="Contoh: SAP-RET-2026-001" required>
+          </div>
+        </div>
       </div>
 
-      <button type="button" id="btnRetSubmit" class="btn-primary" style="background:#e74c3c;" onclick="konfirmasiRetirement()">
-        <i class="fa-solid fa-triangle-exclamation"></i> Verifikasi & Proses Disposal
-      </button>
+      <div class="form-group-modern">
+        <label for="retCatatan" class="form-label-modern">Alasan / Catatan Berita Acara Disposal <span class="req">*</span></label>
+        <div class="input-container">
+          <i class="fa-solid fa-comment-dots input-icon-left"></i>
+          <input type="text" id="retCatatan" name="catatan" class="form-control-modern" placeholder="Contoh: Afkir kerusakan berat, hasil lelang, serah terima vendor..." required>
+        </div>
+      </div>
+
+      <div style="margin-top: 24px; display: flex; gap: 12px; justify-content: flex-end;">
+        <a href="{{ route('asset.index') }}" class="btn-enterprise btn-enterprise-outline">
+          Batal & Kembali
+        </a>
+        <button type="button" id="btnRetSubmit" class="btn-enterprise btn-enterprise-danger" onclick="konfirmasiRetirement()" style="min-width: 200px;">
+          <i class="fa-solid fa-triangle-exclamation"></i> Eksekusi Disposal Aset
+        </button>
+      </div>
     </form>
   </div>
+
 </div>
 @endsection
 
 @push('scripts')
 <script>
-  let selectedAsset = null;
+  let searchTimer = null;
+
+  function cariAsetRet() {
+    clearTimeout(searchTimer);
+    const query = document.getElementById('searchRetInput').value.trim();
+    const kategori = document.getElementById('retKategori').value;
+    const dropdown = document.getElementById('dropdownRetirement');
+    const clearBtn = document.getElementById('clearSearchRetBtn');
+
+    if (query.length > 0) {
+      if (clearBtn) clearBtn.style.display = 'block';
+    } else {
+      if (clearBtn) clearBtn.style.display = 'none';
+      if (dropdown) dropdown.style.display = 'none';
+      return;
+    }
+
+    searchTimer = setTimeout(() => {
+      fetch(`/api/assets/search?q=${encodeURIComponent(query)}&type=${kategori.toLowerCase()}`)
+        .then(res => res.json())
+        .then(res => {
+          if (!dropdown) return;
+          dropdown.innerHTML = '';
+
+          if (!res.data || res.data.length === 0) {
+            dropdown.innerHTML = '<div style="padding:12px 16px; font-size:12.5px; color:var(--slate-400); text-align:center;">Tidak ada aset yang ditemukan.</div>';
+            dropdown.style.display = 'block';
+            return;
+          }
+
+          res.data.forEach(item => {
+            const row = document.createElement('div');
+            row.className = 'dropdown-item-row';
+            row.innerHTML = `
+              <div class="dropdown-item-header">
+                <i class="fa-solid fa-box"></i> ${item.nomor_asset} &bull; ${item.deskripsi_asset}
+              </div>
+              <div class="dropdown-item-sub">
+                SN: ${item.serial_number || '-'} | Qty Buku: ${item.qty_buku || 0} | NBV: Rp ${formatRibuan(item.nbv || 0)}
+              </div>
+            `;
+            row.onclick = () => pilihAsetRet(item);
+            dropdown.appendChild(row);
+          });
+
+          dropdown.style.display = 'block';
+        })
+        .catch(err => {
+          console.error(err);
+        });
+    }, 250);
+  }
 
   function bukaDropdownRet() {
-    const text = document.getElementById('searchRetInput').value.trim();
-    if (text.length > 0) document.getElementById('dropdownRetirement').style.display = 'block';
+    const q = document.getElementById('searchRetInput').value.trim();
+    if (q.length > 0) cariAsetRet();
   }
 
-  let searchRetTimer = null;
-  function cariAsetRet() {
-    const kat = document.getElementById('retKategori').value;
-    const query = document.getElementById('searchRetInput').value.trim();
-    document.getElementById('clearSearchRetBtn').style.display = query.length > 0 ? 'block' : 'none';
+  function pilihAsetRet(item) {
+    document.getElementById('searchRetInput').value = `${item.nomor_asset} - ${item.deskripsi_asset}`;
+    document.getElementById('retAssetNo').value = item.nomor_asset;
+    document.getElementById('retDesc').value = item.deskripsi_asset || '';
+    document.getElementById('retQtyCurrent').value = item.qty_buku || 0;
+    document.getElementById('retNbvCurrent').value = `Rp ${formatRibuan(item.nbv || 0)}`;
 
-    if (query === '') {
-      document.getElementById('dropdownRetirement').style.display = 'none';
-      return;
-    }
-
-    clearTimeout(searchRetTimer);
-    searchRetTimer = setTimeout(async () => {
-      try {
-        const res = await fetch(`/api/assets/search?kategori=${kat}&query=${encodeURIComponent(query)}`);
-        const json = await res.json();
-        renderDropdownRet(json.data || []);
-      } catch (err) {
-        console.error("Search error:", err);
-      }
-    }, 200);
-  }
-
-  function renderDropdownRet(items) {
-    const box = document.getElementById('dropdownRetirement');
-    box.style.display = 'block';
-
-    if (items.length === 0) {
-      box.innerHTML = '<div class="dropdown-item" style="color:#e74c3c;text-align:center;">Aset tidak ditemukan</div>';
-      return;
-    }
-
-    let html = '';
-    items.forEach(item => {
-      let safeId = item.id.replace(/'/g, "\\'");
-      let safeDesc = item.desc.replace(/'/g, "\\'");
-      let snLabel = item.sn && item.sn !== '-' ? `<span class="sn-badge">SN: ${item.sn}</span>` : '';
-      
-      html += `<div class="dropdown-item" onclick="pilihAsetRet('${safeId}', '${safeDesc}', ${item.qty}, ${item.raw_nbv})">
-        <strong>${item.id} ${snLabel}</strong>
-        <span>${item.desc}</span>
-      </div>`;
-    });
-    box.innerHTML = html;
-  }
-
-  function pilihAsetRet(id, desc, qty, nbv) {
-    selectedAsset = { id, desc, qty, nbv };
-    document.getElementById('searchRetInput').value = `${id} - ${desc}`;
-    document.getElementById('retAssetNo').value = id;
-    document.getElementById('retDesc').value = desc;
-    document.getElementById('retQtyCurrent').value = qty;
-    document.getElementById('retNbvCurrent').value = formatRibuan(nbv);
-
-    document.getElementById('clearSearchRetBtn').style.display = 'block';
-    document.getElementById('dropdownRetirement').style.display = 'none';
-    document.getElementById('retQtyInput').focus();
+    const dropdown = document.getElementById('dropdownRetirement');
+    if (dropdown) dropdown.style.display = 'none';
   }
 
   function resetPencarianRet() {
-    ['searchRetInput', 'retAssetNo', 'retDesc', 'retQtyCurrent', 'retNbvCurrent', 'retQtyInput', 'retDocSap', 'retCatatan'].forEach(id => document.getElementById(id).value = '');
-    selectedAsset = null;
+    document.getElementById('searchRetInput').value = '';
+    document.getElementById('retAssetNo').value = '';
+    document.getElementById('retDesc').value = '';
+    document.getElementById('retQtyCurrent').value = '';
+    document.getElementById('retNbvCurrent').value = '';
+    document.getElementById('retQtyInput').value = '';
+    document.getElementById('retDocSap').value = '';
+    document.getElementById('retCatatan').value = '';
     document.getElementById('clearSearchRetBtn').style.display = 'none';
     document.getElementById('dropdownRetirement').style.display = 'none';
   }
 
   function konfirmasiRetirement() {
-    if (!selectedAsset) {
-      return showModal('error', 'Pilih Aset', 'Silakan cari dan pilih aset yang akan di-disposal terlebih dahulu.');
-    }
-
-    const qtyInput = Number(document.getElementById('retQtyInput').value);
+    const assetNo = document.getElementById('retAssetNo').value;
+    const qtyDisposal = Number(document.getElementById('retQtyInput').value) || 0;
+    const qtyCurrent = Number(document.getElementById('retQtyCurrent').value) || 0;
     const docSap = document.getElementById('retDocSap').value.trim();
     const catatan = document.getElementById('retCatatan').value.trim();
 
-    let errs = [];
-    if (!qtyInput || qtyInput <= 0) errs.push("• Qty Disposal harus minimal 1.");
-    if (qtyInput > selectedAsset.qty) errs.push(`• Qty Disposal tidak boleh melebihi stok yang ada (${selectedAsset.qty}).`);
-    if (!docSap) errs.push("• Nomor Dokumen SAP wajib diisi.");
-    if (!catatan) errs.push("• Catatan Retirement wajib diisi.");
-
-    if (errs.length > 0) {
-      return showModal('error', 'Data Belum Lengkap', errs.join('<br>'), 'left');
+    if (!assetNo) {
+      return showModal('error', 'Aset Belum Dipilih', 'Silakan pilih aset yang ingin di-disposal dari autocomplete.');
+    }
+    if (qtyDisposal <= 0) {
+      return showModal('error', 'Qty Disposal Salah', 'Kuantitas disposal minimal 1 unit.');
+    }
+    if (qtyDisposal > qtyCurrent) {
+      return showModal('error', 'Qty Melebihi Batas', `Kuantitas disposal (${qtyDisposal}) tidak boleh melebihi kuantiti stok saat ini (${qtyCurrent}).`);
+    }
+    if (!docSap || !catatan) {
+      return showModal('error', 'Data Belum Lengkap', 'Nomor dokumen SAP dan alasan disposal wajib diisi.');
     }
 
-    let nbvPotong = Math.round(selectedAsset.nbv * (qtyInput / selectedAsset.qty));
+    const confirmModal = document.getElementById('confirmModal');
+    const confirmTitle = document.getElementById('confirmTitle');
+    const confirmDesc = document.getElementById('confirmDesc');
+    const btnAction = document.getElementById('confirmBtnAction');
 
-    document.getElementById('confirmTitle').innerText = 'Konfirmasi Disposal SAP';
-    document.getElementById('confirmDesc').innerHTML = `
-      <div style="font-size: 13px; line-height: 1.8;">
-        <strong>Mohon Verifikasi Data:</strong><br><br>
-        <table style="width:100%; border-collapse: collapse;">
-          <tr><td style="padding: 2px 0; color: var(--text-muted); width: 45%;">Nomor Aset</td><td style="padding: 2px 0; font-weight:600;">: ${selectedAsset.id}</td></tr>
-          <tr><td style="padding: 2px 0; color: var(--text-muted); vertical-align:top;">Nama Aset</td><td style="padding: 2px 0; font-weight:600; vertical-align:top;">: ${selectedAsset.desc}</td></tr>
-          <tr><td style="padding: 2px 0; color: var(--text-muted);">Qty Dihapus</td><td style="padding: 2px 0; font-weight:600; color:#e74c3c;">: ${qtyInput} Unit</td></tr>
-          <tr><td style="padding: 2px 0; color: var(--text-muted);">Sisa Qty Nanti</td><td style="padding: 2px 0; font-weight:600;">: ${selectedAsset.qty - qtyInput} Unit</td></tr>
-          <tr><td style="padding: 2px 0; color: var(--text-muted);">Potongan NBV</td><td style="padding: 2px 0; font-weight:600; color:#e74c3c;">: Rp ${formatRibuan(nbvPotong)}</td></tr>
-        </table>
-      </div>
-    `;
+    confirmTitle.innerText = 'Konfirmasi Disposal Aset';
+    confirmDesc.innerHTML = `Apakah Anda yakin ingin memotong <strong>${qtyDisposal} unit</strong> dari aset <strong>${assetNo}</strong>?<br><br>Tindakan ini akan tercatat dalam riwayat retirement permanen.`;
+    
+    btnAction.className = 'btn-enterprise btn-enterprise-danger';
+    btnAction.innerText = 'Ya, Eksekusi Disposal';
+    btnAction.onclick = () => {
+      tutupConfirmModal();
+      eksekusiRetirement(assetNo, qtyDisposal, docSap, catatan);
+    };
 
-    document.getElementById('btnConfirmAction').onclick = eksekusiRetirement;
-    document.getElementById('confirmModal').style.display = 'flex';
+    confirmModal.style.display = 'flex';
   }
 
-  async function eksekusiRetirement() {
-    tutupConfirmModal();
+  function eksekusiRetirement(assetNo, qtyDisposal, docSap, catatan) {
+    const kategori = document.getElementById('retKategori').value;
     showLoading(true);
 
-    const kat = document.getElementById('retKategori').value;
-    const no = document.getElementById('retAssetNo').value;
-    const qty = Number(document.getElementById('retQtyInput').value);
-    const docSap = document.getElementById('retDocSap').value.trim();
-    const catatan = document.getElementById('retCatatan').value.trim();
-
-    try {
-      const res = await fetch("{{ route('asset.retirement.process') }}", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json",
-          "X-CSRF-TOKEN": csrfToken,
-        },
-        body: JSON.stringify({
-          kategori_db: kat,
-          nomor_asset: no,
-          qty_disposal: qty,
-          dokumen_sap: docSap,
-          catatan: catatan,
-        })
-      });
-
-      const json = await res.json();
-
-      if (res.ok && json.success) {
-        showModal('success', 'Kerja Bagus!', json.message, 'center', () => {
+    fetch("{{ route('asset.retirement.store') }}", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRF-TOKEN": csrfToken,
+        "Accept": "application/json"
+      },
+      body: JSON.stringify({
+        kategori_db: kategori,
+        nomor_asset: assetNo,
+        qty_disposal: qtyDisposal,
+        dokumen_sap: docSap,
+        catatan: catatan
+      })
+    })
+    .then(res => res.json())
+    .then(res => {
+      showLoading(false);
+      if (res.status === 'success') {
+        showModal('success', 'Disposal Berhasil Diproses', res.message, 'center', () => {
           resetPencarianRet();
         });
       } else {
-        throw new Error(json.message || "Gagal memproses disposal aset.");
+        showModal('error', 'Gagal Memproses Disposal', res.message || 'Terjadi kesalahan sistem.');
       }
-    } catch (err) {
-      showModal('error', 'Sistem Gagal', err.message);
-    } finally {
+    })
+    .catch(err => {
       showLoading(false);
-    }
+      console.error(err);
+      showModal('error', 'Kesalahan Server', 'Tidak dapat terhubung ke server.');
+    });
   }
 
-  async function handleMassRetirementUpload(event) {
+  function handleMassRetirementUpload(event) {
     const file = event.target.files[0];
     if (!file) return;
 
     showLoading(true);
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append('file_excel', file);
 
-    try {
-      const res = await fetch("{{ route('asset.mass_retirement') }}", {
-        method: "POST",
-        headers: {
-          "Accept": "application/json",
-          "X-CSRF-TOKEN": csrfToken,
-        },
-        body: formData
-      });
+    fetch("{{ route('asset.mass_retirement') }}", {
+      method: "POST",
+      headers: {
+        "X-CSRF-TOKEN": csrfToken,
+        "Accept": "application/json"
+      },
+      body: formData
+    })
+    .then(res => res.json())
+    .then(res => {
+      showLoading(false);
+      event.target.value = '';
 
-      const json = await res.json();
-
-      if (res.ok && json.success) {
-        showModal('success', 'Disposal Masal Berhasil!', json.message, 'center', () => {
-          window.location.reload();
+      if (res.status === 'success') {
+        let msg = `<strong>${res.message}</strong><br><br>`;
+        msg += `Total Baris: ${res.total_rows || 0}<br>`;
+        msg += `Aset Terhapus Penuh: <strong style="color:var(--danger-500);">${res.deleted || 0}</strong><br>`;
+        msg += `Aset Terpotong Qty: <strong style="color:var(--warning-500);">${res.reduced || 0}</strong><br>`;
+        if (res.errors && res.errors.length > 0) {
+          msg += `<br><span style="color:var(--danger-500); font-weight:700;">Catatan Error:</span><br>${res.errors.slice(0, 5).join('<br>')}`;
+        }
+        showModal('success', 'Mass Retirement Selesai', msg, 'left', () => {
+          window.location.href = "{{ route('asset.index') }}";
         });
       } else {
-        throw new Error(json.message || "Gagal memproses file disposal masal.");
+        showModal('error', 'Gagal Upload Mass Retirement', res.message || 'Gagal memproses file.');
       }
-    } catch (err) {
-      showModal('error', 'Gagal Upload Disposal', err.message);
-    } finally {
-      document.getElementById('fileMassRet').value = '';
+    })
+    .catch(err => {
       showLoading(false);
-    }
+      event.target.value = '';
+      console.error(err);
+      showModal('error', 'Kesalahan Server', 'Gagal mengunggah file spreadsheet.');
+    });
   }
 
-  document.addEventListener('click', function (e) {
-    if (e.target.id !== 'searchRetInput' && e.target.id !== 'dropdownRetirement') {
-      const box = document.getElementById('dropdownRetirement');
-      if (box) box.style.display = 'none';
+  // Close dropdown on outside click
+  document.addEventListener('click', function(e) {
+    const dropdown = document.getElementById('dropdownRetirement');
+    const searchInput = document.getElementById('searchRetInput');
+    if (dropdown && !dropdown.contains(e.target) && e.target !== searchInput) {
+      dropdown.style.display = 'none';
     }
   });
 </script>

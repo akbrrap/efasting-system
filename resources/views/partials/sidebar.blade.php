@@ -1,109 +1,147 @@
 @php
   $user = auth()->user();
-  $role = strtoupper($user->jenis_user ?? '');
-  $currentRoute = request()->route()->getName();
+  $role = strtoupper($user->jenis_user ?? 'GUEST');
+  $currentRoute = request()->route() ? request()->route()->getName() : '';
+  $nama = $user->nama_karyawan ?? $user->username ?? 'User';
 @endphp
 
-<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
-<div class="sidebar" id="sidebar">
-  <div class="sidebar-header">
-    <h3 style="font-size: 16px; margin:0;"><i class="fa-solid fa-bars-progress"></i> Menu Opname</h3>
-    <i class="fa-solid fa-xmark" style="font-size: 20px; cursor:pointer;" onclick="toggleSidebar()"></i>
+<aside class="sidebar-wrapper" id="sidebarWrapper">
+  <!-- Brand Header -->
+  <div class="sidebar-brand">
+    <div class="brand-icon">
+      <i class="fa-solid fa-boxes-stacked"></i>
+    </div>
+    <div class="brand-info">
+      <h2>eFasting Pro</h2>
+      <span>Asset Management</span>
+    </div>
+    <!-- Mobile Close Button -->
+    <button type="button" class="btn-enterprise-outline" style="display: none; margin-left: auto; width: 32px; height: 32px; padding: 0;" onclick="toggleSidebar(false)">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
   </div>
 
-  <ul class="sidebar-menu">
+  <!-- Navigation Links -->
+  <nav class="sidebar-nav">
+    <div class="nav-section-title">Menu Utama</div>
+
     <!-- 1. Home Dashboard -->
-    <li id="menuHome" class="{{ $currentRoute === 'dashboard' ? 'active-menu' : '' }}">
-      <a href="{{ route('dashboard') }}" style="display:flex; align-items:center; color:inherit; text-decoration:none; width:100%;">
-        <i class="fa-solid fa-house" style="width: 20px; color:var(--text-muted); margin-right: 8px;"></i> Home Dashboard
-      </a>
-    </li>
+    <a href="{{ route('dashboard') }}" class="nav-item {{ $currentRoute === 'dashboard' ? 'active' : '' }}">
+      <i class="fa-solid fa-chart-pie nav-icon"></i>
+      <span>Executive Dashboard</span>
+    </a>
 
-    <!-- 2. Fixed Assets Stock Opname Submenu -->
+    <!-- 2. Fixed Assets Stock Opname (Internal & External) -->
     @if ($role === 'ADMINISTRATOR' || $role === 'INTERNAL' || $role === 'EKSTERNAL')
-      <li class="menu-category {{ str_starts_with($currentRoute, 'opname.') ? 'expanded' : '' }}" id="catOpname" onclick="toggleSubmenu('subOpname', this)">
-        <div class="category-title">
-          <span><i class="fa-solid fa-boxes-packing" style="width: 20px;"></i> Fixed Assets Stock Opname</span>
-          <i class="fa-solid fa-chevron-down chevron-icon"></i>
+      <div class="nav-section-title">Operasional Opname</div>
+      
+      <div class="nav-group {{ str_starts_with($currentRoute, 'opname.') ? 'open' : '' }}" id="groupOpname">
+        <div class="nav-group-header" onclick="toggleSubmenu('groupOpname', this)">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <i class="fa-solid fa-clipboard-check nav-icon"></i>
+            <span>Stock Opname Fisik</span>
+          </div>
+          <i class="fa-solid fa-chevron-down nav-chevron"></i>
         </div>
-      </li>
-      <ul class="submenu-container {{ str_starts_with($currentRoute, 'opname.') ? 'open' : '' }}" id="subOpname">
-        @if ($role === 'ADMINISTRATOR' || $role === 'INTERNAL')
-          <li id="menuInternal" class="{{ $currentRoute === 'opname.internal' ? 'active-menu' : '' }}">
-            <a href="{{ route('opname.internal') }}" style="display:flex; align-items:center; color:inherit; text-decoration:none; width:100%;">
-              <i class="fa-solid fa-industry" style="margin-right: 8px;"></i> Stock opname Internal Assets
-            </a>
-          </li>
-        @endif
 
-        @if ($role === 'ADMINISTRATOR' || $role === 'EKSTERNAL')
-          <li id="menuExternal" class="{{ $currentRoute === 'opname.external' ? 'active-menu' : '' }}">
-            <a href="{{ route('opname.external') }}" style="display:flex; align-items:center; color:inherit; text-decoration:none; width:100%;">
-              <i class="fa-solid fa-truck-fast" style="margin-right: 8px;"></i> Stock Opname External Assets
-            </a>
-          </li>
-        @endif
-      </ul>
+        <ul class="nav-sublist">
+          @if ($role === 'ADMINISTRATOR' || $role === 'INTERNAL')
+            <li>
+              <a href="{{ route('opname.internal') }}" class="nav-subitem {{ $currentRoute === 'opname.internal' ? 'active' : '' }}">
+                <i class="fa-solid fa-industry" style="font-size: 11px;"></i>
+                <span>Opname Internal (Pabrik)</span>
+              </a>
+            </li>
+          @endif
+
+          @if ($role === 'ADMINISTRATOR' || $role === 'EKSTERNAL')
+            <li>
+              <a href="{{ route('opname.external') }}" class="nav-subitem {{ $currentRoute === 'opname.external' ? 'active' : '' }}">
+                <i class="fa-solid fa-truck-ramp-box" style="font-size: 11px;"></i>
+                <span>Opname Eksternal (Vendor)</span>
+              </a>
+            </li>
+          @endif
+        </ul>
+      </div>
     @endif
 
-    <!-- 3. Master Assets Database Submenu (Khusus Administrator) -->
+    <!-- 3. Master Assets Database (Khusus Administrator) -->
     @if ($role === 'ADMINISTRATOR')
-      <li class="menu-category {{ str_starts_with($currentRoute, 'asset.') ? 'expanded' : '' }}" id="catMaster" onclick="toggleSubmenu('subMaster', this)">
-        <div class="category-title">
-          <span><i class="fa-solid fa-database" style="width: 20px;"></i> Master Assets Database</span>
-          <i class="fa-solid fa-chevron-down chevron-icon"></i>
+      <div class="nav-section-title">Kelola Master Asset</div>
+
+      <div class="nav-group {{ str_starts_with($currentRoute, 'asset.') ? 'open' : '' }}" id="groupMaster">
+        <div class="nav-group-header" onclick="toggleSubmenu('groupMaster', this)">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <i class="fa-solid fa-server nav-icon"></i>
+            <span>Master Database</span>
+          </div>
+          <i class="fa-solid fa-chevron-down nav-chevron"></i>
         </div>
-      </li>
-      <ul class="submenu-container {{ str_starts_with($currentRoute, 'asset.') ? 'open' : '' }}" id="subMaster">
-        <li id="menuMasterAsset" class="{{ $currentRoute === 'asset.index' ? 'active-menu' : '' }}">
-          <a href="{{ route('asset.index') }}" style="display:flex; align-items:center; color:inherit; text-decoration:none; width:100%;">
-            <i class="fa-solid fa-list" style="margin-right: 8px;"></i> Fixed Asset List
-          </a>
-        </li>
-        <li id="menuAddAsset" class="{{ $currentRoute === 'asset.create' ? 'active-menu' : '' }}">
-          <a href="{{ route('asset.create') }}" style="display:flex; align-items:center; color:inherit; text-decoration:none; width:100%;">
-            <i class="fa-solid fa-folder-plus" style="margin-right: 8px;"></i> Fixed Asset Addition
-          </a>
-        </li>
-        <li id="menuAdjustment" class="{{ $currentRoute === 'asset.adjustment' ? 'active-menu' : '' }}">
-          <a href="{{ route('asset.adjustment') }}" style="display:flex; align-items:center; color:inherit; text-decoration:none; width:100%;">
-            <i class="fa-solid fa-sliders" style="margin-right: 8px;"></i> Asset Adjustment
-          </a>
-        </li>
-        <li id="menuRetirement" class="{{ $currentRoute === 'asset.retirement' ? 'active-menu' : '' }}">
-          <a href="{{ route('asset.retirement') }}" style="display:flex; align-items:center; color:inherit; text-decoration:none; width:100%;">
-            <i class="fa-solid fa-trash-can" style="margin-right: 8px;"></i> Fixed Asset Retirements
-          </a>
-        </li>
-      </ul>
 
-      <!-- 4. Fixed Asset Audit Trail -->
-      <li id="menuRiwayat" class="{{ $currentRoute === 'audit.index' ? 'active-menu' : '' }}">
-        <a href="{{ route('audit.index') }}" style="display:flex; align-items:center; color:inherit; text-decoration:none; width:100%;">
-          <i class="fa-solid fa-clock-rotate-left" style="width: 20px; color:var(--text-muted); margin-right: 8px;"></i> Fixed Asset Audit Trail
-        </a>
-      </li>
-
-      <!-- 5. Reports -->
-      <li id="menuReports" class="{{ $currentRoute === 'reports.index' ? 'active-menu' : '' }}">
-        <a href="{{ route('reports.index') }}" style="display:flex; align-items:center; color:inherit; text-decoration:none; width:100%;">
-          <i class="fa-solid fa-file-excel" style="width: 20px; color:var(--text-muted); margin-right: 8px;"></i> Reports
-        </a>
-      </li>
+        <ul class="nav-sublist">
+          <li>
+            <a href="{{ route('asset.index') }}" class="nav-subitem {{ $currentRoute === 'asset.index' ? 'active' : '' }}">
+              <i class="fa-solid fa-table-list" style="font-size: 11px;"></i>
+              <span>Daftar Master Aset</span>
+            </a>
+          </li>
+          <li>
+            <a href="{{ route('asset.create') }}" class="nav-subitem {{ $currentRoute === 'asset.create' ? 'active' : '' }}">
+              <i class="fa-solid fa-file-circle-plus" style="font-size: 11px;"></i>
+              <span>Mass Asset Addition</span>
+            </a>
+          </li>
+          <li>
+            <a href="{{ route('asset.adjustment') }}" class="nav-subitem {{ $currentRoute === 'asset.adjustment' ? 'active' : '' }}">
+              <i class="fa-solid fa-sliders" style="font-size: 11px;"></i>
+              <span>Mass Adjustment</span>
+            </a>
+          </li>
+          <li>
+            <a href="{{ route('asset.retirement') }}" class="nav-subitem {{ $currentRoute === 'asset.retirement' ? 'active' : '' }}">
+              <i class="fa-solid fa-trash-can" style="font-size: 11px;"></i>
+              <span>Mass Retirement</span>
+            </a>
+          </li>
+        </ul>
+      </div>
     @endif
-  </ul>
 
-  <div class="sidebar-footer">
-    <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 10px;">
-      Login sebagai: <br>
-      <strong style="color:var(--main-blue);">{{ $user->nama_karyawan ?? 'Petugas' }} ({{ $role }})</strong>
+    <!-- 4. Laporan & Audit Trail (Administrator & Internal) -->
+    @if ($role === 'ADMINISTRATOR' || $role === 'INTERNAL')
+      <div class="nav-section-title">Audit & Pelaporan</div>
+
+      <a href="{{ route('opname.audit_trail') }}" class="nav-item {{ $currentRoute === 'opname.audit_trail' ? 'active' : '' }}">
+        <i class="fa-solid fa-clock-rotate-left nav-icon"></i>
+        <span>Fixed Asset Audit Trail</span>
+      </a>
+
+      <a href="{{ route('reports.index') }}" class="nav-item {{ $currentRoute === 'reports.index' ? 'active' : '' }}">
+        <i class="fa-solid fa-file-excel nav-icon"></i>
+        <span>Download Laporan Excel</span>
+      </a>
+    @endif
+  </nav>
+
+  <!-- Sidebar User Profile Footer -->
+  <div class="sidebar-user">
+    <div class="user-meta">
+      <div class="user-avatar">
+        {{ strtoupper(substr($nama, 0, 1)) }}
+      </div>
+      <div class="user-details">
+        <div class="user-name" title="{{ $nama }}">{{ $nama }}</div>
+        <div class="user-badge">{{ $role }}</div>
+      </div>
     </div>
 
-    <form action="{{ route('logout') }}" method="POST" id="sidebarLogoutForm">
+    <!-- Quick Logout Button -->
+    <form method="POST" action="{{ route('logout') }}" id="logoutFormSidebar" style="margin: 0;">
       @csrf
-      <button type="submit" class="btn-primary" style="padding: 10px; font-size: 13px; background: #e74c3c; width:100%;">
-        <i class="fa-solid fa-power-off"></i> Logout
+      <button type="submit" class="btn-sidebar-logout" title="Keluar / Logout" onclick="return confirm('Apakah Anda yakin ingin keluar dari sistem?')">
+        <i class="fa-solid fa-arrow-right-from-bracket"></i>
       </button>
     </form>
   </div>
-</div>
+</aside>

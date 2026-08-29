@@ -410,8 +410,39 @@ class AssetController extends Controller
             return [
                 'id' => $loc->code_entity,
                 'desc' => $loc->description,
+                'code_entity' => $loc->code_entity,
+                'description' => $loc->description,
             ];
         });
+
+        return response()->json([
+            'success' => true,
+            'data' => $locations,
+        ]);
+    }
+
+    /**
+     * API Search Master Lokasi External.
+     */
+    public function apiSearchLocations(Request $request): JsonResponse
+    {
+        $query = $request->query('q', '');
+
+        $locations = MasterLokasiExternal::query()
+            ->when($query, function ($q) use ($query) {
+                $q->where('code_entity', 'like', "%{$query}%")
+                  ->orWhere('description', 'like', "%{$query}%");
+            })
+            ->limit(20)
+            ->get()
+            ->map(function ($loc) {
+                return [
+                    'id' => $loc->code_entity,
+                    'desc' => $loc->description,
+                    'code_entity' => $loc->code_entity,
+                    'description' => $loc->description,
+                ];
+            });
 
         return response()->json([
             'success' => true,

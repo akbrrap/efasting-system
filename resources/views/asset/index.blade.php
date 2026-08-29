@@ -1,50 +1,73 @@
 @extends('layouts.app')
 
-@section('title', 'Fixed Asset List')
+@section('title', 'Master Asset Database')
 
 @section('content')
-<div id="viewMasterAsset" class="view-section active">
-  @include('partials.header', ['title' => 'Fixed Asset List'])
+<div style="display: flex; flex-direction: column; gap: 24px;">
 
-  <div class="form-content">
-    <!-- Filter Kategori & Limit -->
-    <div class="grid-2" style="margin-bottom: 10px;">
-      <div class="form-group" style="margin-bottom: 5px;">
-        <label style="font-size: 11px;">Kategori Database</label>
-        <select id="masterAssetKategori" class="form-control" onchange="loadMasterData(1)">
-          <option value="INTERNAL" {{ $kategori === 'INTERNAL' ? 'selected' : '' }}>🏭 Internal Database</option>
-          <option value="EXTERNAL" {{ $kategori === 'EXTERNAL' ? 'selected' : '' }}>🚚 External Database</option>
-        </select>
+  <div class="card-panel">
+    <div class="card-header-clean">
+      <div>
+        <h2 class="card-title-text">
+          <i class="fa-solid fa-server" style="color: var(--primary-600);"></i> Master Database Fixed Assets
+        </h2>
+        <p class="card-subtitle-text">Database inventaris aset tetap perusahaan (Internal & Eksternal) beserta rincian nilai perolehan dan penyusutan</p>
       </div>
 
-      <div class="form-group" style="margin-bottom: 5px;">
-        <label style="font-size: 11px;">Baris per Halaman</label>
-        <select id="limitMasterAsset" class="form-control" onchange="loadMasterData(1)">
-          <option value="25">25 Aset</option>
-          <option value="50" selected>50 Aset</option>
-          <option value="100">100 Aset</option>
-        </select>
+      <!-- Quick Action: Tambah / Import -->
+      <div style="display: flex; gap: 10px;">
+        <a href="{{ route('asset.create') }}" class="btn-enterprise btn-enterprise-primary">
+          <i class="fa-solid fa-file-circle-plus"></i> Tambah / Import Aset
+        </a>
       </div>
     </div>
 
-    <!-- Pencarian Cepat -->
-    <div class="form-group" style="margin-bottom: 12px;">
-      <div class="input-wrapper">
-        <i class="fa-solid fa-magnifying-glass icon-left"></i>
-        <input type="text" id="searchMasterAsset" class="form-control" placeholder="Cari No Aset / Nama / Serial Number..." autocomplete="off" onkeyup="debounceSearch()">
+    <!-- Filter & Search Toolbar -->
+    <div style="display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 20px; align-items: center; justify-content: space-between;">
+      <div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center; flex: 1;">
+        <!-- Kategori Switcher Tabs -->
+        <div style="display: flex; background: var(--slate-100); padding: 4px; border-radius: var(--radius-md); border: 1px solid var(--slate-200);">
+          <button type="button" id="tabInternal" class="btn-enterprise" style="padding: 6px 14px; font-size: 12.5px; background: #ffffff; color: var(--primary-700); box-shadow: var(--shadow-sm);" onclick="setKategori('INTERNAL')">
+            <i class="fa-solid fa-industry"></i> Internal (Pabrik)
+          </button>
+          <button type="button" id="tabExternal" class="btn-enterprise" style="padding: 6px 14px; font-size: 12.5px; background: transparent; color: var(--slate-500); box-shadow: none;" onclick="setKategori('EXTERNAL')">
+            <i class="fa-solid fa-truck-fast"></i> Eksternal (Vendor)
+          </button>
+          <input type="hidden" id="masterAssetKategori" value="{{ $kategori ?? 'INTERNAL' }}">
+        </div>
+
+        <!-- Limit Dropdown -->
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <span style="font-size: 12px; color: var(--slate-500); font-weight: 600;">Tampilkan:</span>
+          <select id="limitMasterAsset" class="form-control-modern" style="padding: 6px 10px; font-size: 12.5px; width: auto;" onchange="loadMasterData(1)">
+            <option value="25">25 Aset</option>
+            <option value="50" selected>50 Aset</option>
+            <option value="100">100 Aset</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Live Search Bar -->
+      <div style="min-width: 280px; flex: 0.8;">
+        <div class="input-container">
+          <i class="fa-solid fa-magnifying-glass input-icon-left"></i>
+          <input type="text" id="searchMasterAsset" class="form-control-modern" placeholder="Cari No Aset / Nama / SN / Cost Center..." autocomplete="off" onkeyup="debounceSearch()">
+        </div>
       </div>
     </div>
 
-    <!-- Container Hasil List Aset -->
-    <div id="hasilMasterAsset" style="max-height: 480px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 8px; background: #fff;">
-      <div style="text-align:center; padding: 30px; color:var(--main-blue);">
-        <i class="fa-solid fa-spinner fa-spin fa-2x"></i><br><br>Memuat data aset...
+    <!-- Data Table Container -->
+    <div id="hasilMasterAsset" class="table-responsive-box">
+      <div style="text-align:center; padding: 40px; color: var(--primary-600);">
+        <i class="fa-solid fa-spinner fa-spin fa-2x"></i>
+        <div style="margin-top: 10px; font-weight: 600;">Memuat data master aset...</div>
       </div>
     </div>
 
-    <!-- Pagination -->
-    <div id="paginationMasterAsset" style="margin-top: 15px;"></div>
+    <!-- Pagination Container -->
+    <div id="paginationMasterAsset" style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;"></div>
   </div>
+
 </div>
 @endsection
 
@@ -56,6 +79,30 @@
   document.addEventListener('DOMContentLoaded', function () {
     loadMasterData(1);
   });
+
+  function setKategori(kat) {
+    document.getElementById('masterAssetKategori').value = kat;
+    const tabInt = document.getElementById('tabInternal');
+    const tabExt = document.getElementById('tabExternal');
+
+    if (kat === 'INTERNAL') {
+      tabInt.style.background = '#ffffff';
+      tabInt.style.color = 'var(--primary-700)';
+      tabInt.style.boxShadow = 'var(--shadow-sm)';
+      tabExt.style.background = 'transparent';
+      tabExt.style.color = 'var(--slate-500)';
+      tabExt.style.boxShadow = 'none';
+    } else {
+      tabExt.style.background = '#ffffff';
+      tabExt.style.color = 'var(--primary-700)';
+      tabExt.style.boxShadow = 'var(--shadow-sm)';
+      tabInt.style.background = 'transparent';
+      tabInt.style.color = 'var(--slate-500)';
+      tabInt.style.boxShadow = 'none';
+    }
+
+    loadMasterData(1);
+  }
 
   function debounceSearch() {
     clearTimeout(searchTimer);
@@ -72,7 +119,7 @@
     const container = document.getElementById('hasilMasterAsset');
     const pagContainer = document.getElementById('paginationMasterAsset');
 
-    container.innerHTML = '<div style="text-align:center; padding: 30px; color:var(--main-blue);"><i class="fa-solid fa-spinner fa-spin fa-2x"></i><br><br>Memuat data aset...</div>';
+    container.innerHTML = '<div style="text-align:center; padding: 40px; color:var(--primary-600);"><i class="fa-solid fa-spinner fa-spin fa-2x"></i><div style="margin-top:10px; font-weight:600;">Memuat data master aset...</div></div>';
 
     try {
       const url = `/assets?kategori=${kategori}&limit=${limit}&search=${encodeURIComponent(search)}&page=${page}`;
@@ -85,7 +132,7 @@
       const json = await res.json();
 
       if (!json.success || !json.data || json.data.length === 0) {
-        container.innerHTML = '<div style="text-align:center; padding: 30px; color:var(--text-muted); font-size:13px;">Tidak ada data aset yang sesuai.</div>';
+        container.innerHTML = '<div style="text-align:center; padding: 40px; color:var(--slate-400); font-size:13.5px;"><i class="fa-solid fa-box-open" style="font-size:28px; margin-bottom:10px; display:block;"></i>Tidak ada data aset yang cocok dengan kriteria pencarian.</div>';
         pagContainer.innerHTML = '';
         return;
       }
@@ -94,14 +141,26 @@
       const from = (json.pagination.current_page - 1) * json.pagination.per_page + 1;
       const to = Math.min(from + json.data.length - 1, total);
 
-      let headerHtml = `<div style="font-size:11px; background:var(--main-blue-light); color:var(--main-blue); padding:8px 12px; font-weight:600; position:sticky; top:0; z-index:5; border-bottom: 1px solid var(--border-color);">
-        Menampilkan ${from} - ${to} dari total ${formatRibuan(total)} aset
-      </div>`;
+      let tableHtml = `
+        <table class="enterprise-table">
+          <thead>
+            <tr>
+              <th>Nomor Aset</th>
+              <th>Deskripsi Aset</th>
+              <th>Serial Number</th>
+              <th>Cost Center</th>
+              <th>Alokasi Lokasi</th>
+              <th>Qty Buku</th>
+              <th>NBV (Rupiah)</th>
+              <th style="text-align: center;">Aksi</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
 
-      let listHtml = '';
       json.data.forEach(item => {
         const no = item.nomor_asset;
-        const desc = item.deskripsi_asset;
+        const desc = item.deskripsi_asset || '-';
         const sn = item.serial_number || '-';
         const qty = item.qty_buku || 0;
         const cap = item.cap_date ? item.cap_date.substring(0, 10) : '-';
@@ -111,44 +170,70 @@
         const costCenter = item.cost_center || '-';
         const alloc = item.allocation || '-';
 
-        const snBadge = (sn && sn !== '-') ? `<span class="sn-badge" style="background:#27ae60;">SN: ${sn}</span>` : '';
-
-        listHtml += `
-          <div class="asset-list-item" onclick="detailAset('${no}', '${desc.replace(/'/g, "\\'")}', '${sn.replace(/'/g, "\\'")}', ${qty}, '${cap}', '${nbv}', '${np}', '${ad}', '${costCenter}', '${alloc}')">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 3px;">
-              <div style="font-size: 13px; font-weight: 600; color: var(--main-blue);">${no}</div>
-              <i class="fa-solid fa-chevron-right" style="color:var(--text-muted); font-size: 10px; margin-top:3px;"></i>
-            </div>
-            <div style="font-size: 11px; margin-bottom: 4px; color: var(--text-main); line-height:1.3;">${desc}</div>
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-              <div>${snBadge}</div>
-              <span style="font-size:11px; color:var(--text-muted);"><i class="fa-solid fa-book"></i> Qty Buku: <strong>${qty}</strong></span>
-            </div>
-          </div>
+        tableHtml += `
+          <tr>
+            <td>
+              <span style="font-weight: 700; color: var(--primary-700);">${no}</span>
+            </td>
+            <td>
+              <div style="font-weight: 600; color: var(--slate-800); max-width: 260px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${desc}">
+                ${desc}
+              </div>
+            </td>
+            <td>
+              ${sn !== '-' ? `<span class="badge-pill badge-info"><i class="fa-solid fa-barcode"></i> ${sn}</span>` : '<span style="color:var(--slate-400);">-</span>'}
+            </td>
+            <td>
+              <span style="font-size: 12px; color: var(--slate-600);">${costCenter}</span>
+            </td>
+            <td>
+              <span style="font-size: 12px; color: var(--slate-600); max-width: 180px; display: inline-block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${alloc}">
+                <i class="fa-solid fa-location-dot" style="color: var(--primary-500); margin-right: 4px;"></i>${alloc}
+              </span>
+            </td>
+            <td>
+              <span class="badge-pill badge-primary">${qty} Unit</span>
+            </td>
+            <td>
+              <span style="font-weight: 700; color: var(--success-600);">Rp ${nbv}</span>
+            </td>
+            <td style="text-align: center;">
+              <button type="button" class="btn-enterprise btn-enterprise-outline" style="padding: 5px 10px; font-size: 12px;" onclick="detailAset('${no}', '${desc.replace(/'/g, "\\'")}', '${sn.replace(/'/g, "\\'")}', ${qty}, '${cap}', '${nbv}', '${np}', '${ad}', '${costCenter.replace(/'/g, "\\'")}', '${alloc.replace(/'/g, "\\'")}')">
+                <i class="fa-solid fa-circle-info"></i> Detail
+              </button>
+            </td>
+          </tr>
         `;
       });
 
-      container.innerHTML = headerHtml + listHtml;
+      tableHtml += `</tbody></table>`;
+      container.innerHTML = tableHtml;
 
-      // Render Pagination
-      renderPagination(json.pagination);
+      // Render Pagination Info & Controls
+      renderPagination(json.pagination, from, to, total);
 
     } catch (err) {
-      container.innerHTML = `<div class="alert-box alert-danger" style="display:block;">Gagal memuat data: ${err.message}</div>`;
+      container.innerHTML = `<div style="padding: 20px; color: var(--danger-500); text-align: center;">Gagal memuat data: ${err.message}</div>`;
       pagContainer.innerHTML = '';
     }
   }
 
-  function renderPagination(p) {
+  function renderPagination(p, from, to, total) {
     const pagContainer = document.getElementById('paginationMasterAsset');
+    if (!pagContainer) return;
+
+    let infoHtml = `<div style="font-size: 12.5px; color: var(--slate-500); font-weight: 600;">
+      Menampilkan <strong>${from}</strong> - <strong>${to}</strong> dari total <strong>${formatRibuan(total)}</strong> aset
+    </div>`;
+
     if (p.last_page <= 1) {
-      pagContainer.innerHTML = '';
+      pagContainer.innerHTML = infoHtml;
       return;
     }
 
-    let html = `<div class="pagination">
-      <button class="page-btn" ${p.current_page === 1 ? 'disabled' : ''} onclick="loadMasterData(${p.current_page - 1})">
-        <i class="fa-solid fa-chevron-left"></i>
+    let buttonsHtml = `<div style="display: flex; gap: 4px; align-items: center;">
+      <button class="btn-enterprise btn-enterprise-outline" style="padding: 6px 12px; font-size: 12px;" ${p.current_page === 1 ? 'disabled' : ''} onclick="loadMasterData(${p.current_page - 1})">
+        <i class="fa-solid fa-chevron-left"></i> Prev
       </button>`;
 
     let start = Math.max(1, p.current_page - 2);
@@ -156,41 +241,45 @@
     if (end - start < 4) start = Math.max(1, end - 4);
 
     if (start > 1) {
-      html += `<button class="page-btn" onclick="loadMasterData(1)">1</button>`;
-      if (start > 2) html += `<span style="font-size:12px; color:var(--text-muted);">...</span>`;
+      buttonsHtml += `<button class="btn-enterprise btn-enterprise-outline" style="padding: 6px 10px; font-size: 12px;" onclick="loadMasterData(1)">1</button>`;
+      if (start > 2) buttonsHtml += `<span style="font-size:12px; color:var(--slate-400);">...</span>`;
     }
 
     for (let i = start; i <= end; i++) {
-      html += `<button class="page-btn ${i === p.current_page ? 'active' : ''}" onclick="loadMasterData(${i})">${i}</button>`;
+      const activeStyle = (i === p.current_page) ? 'background: var(--primary-600); color: #fff; border-color: var(--primary-600);' : '';
+      buttonsHtml += `<button class="btn-enterprise btn-enterprise-outline" style="padding: 6px 10px; font-size: 12px; ${activeStyle}" onclick="loadMasterData(${i})">${i}</button>`;
     }
 
     if (end < p.last_page) {
-      if (end < p.last_page - 1) html += `<span style="font-size:12px; color:var(--text-muted);">...</span>`;
-      html += `<button class="page-btn" onclick="loadMasterData(${p.last_page})">${p.last_page}</button>`;
+      if (end < p.last_page - 1) buttonsHtml += `<span style="font-size:12px; color:var(--slate-400);">...</span>`;
+      buttonsHtml += `<button class="btn-enterprise btn-enterprise-outline" style="padding: 6px 10px; font-size: 12px;" onclick="loadMasterData(${p.last_page})">${p.last_page}</button>`;
     }
 
-    html += `<button class="page-btn" ${p.current_page === p.last_page ? 'disabled' : ''} onclick="loadMasterData(${p.current_page + 1})">
-        <i class="fa-solid fa-chevron-right"></i>
+    buttonsHtml += `<button class="btn-enterprise btn-enterprise-outline" style="padding: 6px 12px; font-size: 12px;" ${p.current_page === p.last_page ? 'disabled' : ''} onclick="loadMasterData(${p.current_page + 1})">
+        Next <i class="fa-solid fa-chevron-right"></i>
       </button>
     </div>`;
 
-    pagContainer.innerHTML = html;
+    pagContainer.innerHTML = infoHtml + buttonsHtml;
   }
 
   function detailAset(no, desc, sn, qty, cap, nbv, np, ad, cc, alloc) {
-    showModal('info', 'Detail Master Aset', `
-      <div style="font-size: 13px; line-height: 1.8; color: var(--text-main);">
+    showModal('info', 'Rincian Master Aset', `
+      <div style="font-size: 13px; line-height: 1.8; color: var(--slate-700); text-align: left;">
+        <div style="background: var(--primary-50); padding: 12px; border-radius: var(--radius-md); margin-bottom: 12px; border: 1px solid var(--primary-200);">
+          <div style="font-size: 11px; font-weight: 700; color: var(--primary-600); text-transform: uppercase;">Nomor Register Aset</div>
+          <div style="font-size: 16px; font-weight: 800; color: var(--primary-800);">${no}</div>
+        </div>
         <table style="width:100%; border-collapse: collapse;">
-          <tr><td style="padding: 4px 0; color: var(--text-muted); width: 42%;">Nomor Aset</td><td style="padding: 4px 0; font-weight:600;">: ${no}</td></tr>
-          <tr><td style="padding: 4px 0; color: var(--text-muted); vertical-align:top;">Deskripsi</td><td style="padding: 4px 0; font-weight:600; vertical-align:top;">: ${desc}</td></tr>
-          <tr><td style="padding: 4px 0; color: var(--text-muted);">Serial Number</td><td style="padding: 4px 0; font-weight:600;">: ${sn}</td></tr>
-          <tr><td style="padding: 4px 0; color: var(--text-muted);">Cost Center</td><td style="padding: 4px 0; font-weight:600;">: ${cc}</td></tr>
-          <tr><td style="padding: 4px 0; color: var(--text-muted);">Alokasi</td><td style="padding: 4px 0; font-weight:600;">: ${alloc}</td></tr>
-          <tr><td style="padding: 4px 0; color: var(--text-muted);">Qty Buku</td><td style="padding: 4px 0; font-weight:600;">: ${qty} Unit</td></tr>
-          <tr><td style="padding: 4px 0; color: var(--text-muted);">Cap Date</td><td style="padding: 4px 0; font-weight:600;">: ${cap}</td></tr>
-          <tr><td style="padding: 4px 0; color: var(--text-muted);">Nilai Perolehan</td><td style="padding: 4px 0; font-weight:600;">: Rp ${np}</td></tr>
-          <tr><td style="padding: 4px 0; color: var(--text-muted);">Akum. Depresiasi</td><td style="padding: 4px 0; font-weight:600;">: Rp ${ad}</td></tr>
-          <tr><td style="padding: 4px 0; color: var(--text-muted);">NBV (Net Book Value)</td><td style="padding: 4px 0; font-weight:600; color: #27ae60;">: Rp ${nbv}</td></tr>
+          <tr><td style="padding: 4px 0; color: var(--slate-400); width: 42%;">Deskripsi Aset</td><td style="padding: 4px 0; font-weight:700; color: var(--slate-800);">${desc}</td></tr>
+          <tr><td style="padding: 4px 0; color: var(--slate-400);">Serial Number</td><td style="padding: 4px 0; font-weight:600;">${sn}</td></tr>
+          <tr><td style="padding: 4px 0; color: var(--slate-400);">Cost Center</td><td style="padding: 4px 0; font-weight:600;">${cc}</td></tr>
+          <tr><td style="padding: 4px 0; color: var(--slate-400);">Alokasi Lokasi</td><td style="padding: 4px 0; font-weight:600;">${alloc}</td></tr>
+          <tr><td style="padding: 4px 0; color: var(--slate-400);">Kuantitas Buku</td><td style="padding: 4px 0; font-weight:700; color: var(--primary-700);">${qty} Unit</td></tr>
+          <tr><td style="padding: 4px 0; color: var(--slate-400);">Capitalized Date</td><td style="padding: 4px 0; font-weight:600;">${cap}</td></tr>
+          <tr><td style="padding: 4px 0; color: var(--slate-400);">Nilai Perolehan</td><td style="padding: 4px 0; font-weight:600;">Rp ${np}</td></tr>
+          <tr><td style="padding: 4px 0; color: var(--slate-400);">Akum. Depresiasi</td><td style="padding: 4px 0; font-weight:600;">Rp ${ad}</td></tr>
+          <tr><td style="padding: 4px 0; color: var(--slate-400);">Net Book Value (NBV)</td><td style="padding: 4px 0; font-weight:800; color: var(--success-600);">Rp ${nbv}</td></tr>
         </table>
       </div>
     `, 'left');

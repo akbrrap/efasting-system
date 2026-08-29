@@ -34,7 +34,7 @@ class BladeViewTest extends TestCase
             'asset.create',
             'asset.adjustment',
             'asset.retirement',
-            'audit.index',
+            'opname.audit_trail',
             'reports.index',
         ];
 
