@@ -161,6 +161,11 @@
       const cleanUrl = url.trim();
 
       if (img) {
+        img.onerror = function() {
+          this.onerror = null;
+          showModal('error', 'Gagal Memuat Foto', 'File foto tidak ditemukan atau format tidak didukung.');
+          tutupPreviewFoto();
+        };
         img.src = cleanUrl;
         img.style.display = 'block';
       }
@@ -173,7 +178,10 @@
       const photoModal = document.getElementById('photoModal');
       if (photoModal) photoModal.style.display = 'none';
       const img = document.getElementById('previewImageModal');
-      if (img) img.src = '';
+      if (img) {
+        img.onerror = null;
+        img.removeAttribute('src');
+      }
     }
 
     function formatRibuan(angka) {

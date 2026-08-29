@@ -50,7 +50,7 @@
     </div>
 
     <div style="border-radius: var(--radius-md); overflow: hidden; background: var(--slate-900); display: flex; align-items: center; justify-content: center; min-height: 320px; max-height: 500px;">
-      <img id="previewImageModal" src="" alt="Preview Dokumentasi Opname" style="max-width: 100%; max-height: 480px; object-fit: contain; display: block;" onerror="this.src=''; alert('Gagal memuat file foto.');">
+      <img id="previewImageModal" alt="Preview Dokumentasi Opname" style="max-width: 100%; max-height: 480px; object-fit: contain; display: block;">
     </div>
 
     <div style="margin-top: 16px; display: flex; justify-content: flex-end;">
