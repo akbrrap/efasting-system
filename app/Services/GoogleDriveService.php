@@ -5,6 +5,7 @@ namespace App\Services;
 use Google\Client as GoogleClient;
 use Google\Service\Drive as GoogleDrive;
 use Google\Service\Drive\DriveFile;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
@@ -12,6 +13,7 @@ class GoogleDriveService
 {
     protected string $folderFisikId;
     protected string $folderTaggingId;
+    protected ?string $webAppUrl;
     protected ?GoogleClient $client = null;
     protected ?GoogleDrive $driveService = null;
     protected bool $isConfigured = false;
@@ -20,6 +22,7 @@ class GoogleDriveService
     {
         $this->folderFisikId = config('services.google_drive.folder_fisik_id', '1bbK_kpW2QGm8D9u740mLtpyunJbSNFxS');
         $this->folderTaggingId = config('services.google_drive.folder_tagging_id', '15Dp7vco1OTTWcQzogFJpcXzVSu7gTDT6');
+        $this->webAppUrl = config('services.google_drive.webapp_url', env('GOOGLE_DRIVE_WEBAPP_URL', null));
 
         $this->initClient();
     }
@@ -47,6 +50,8 @@ class GoogleDriveService
                 $this->client = $client;
                 $this->driveService = new GoogleDrive($client);
                 $this->isConfigured = true;
+            } elseif (!empty($this->webAppUrl)) {
+                $this->isConfigured = true;
             }
         } catch (Throwable $e) {
             Log::warning('GoogleDriveService: Gagal inisialisasi Google Client: ' . $e->getMessage());
@@ -55,11 +60,11 @@ class GoogleDriveService
     }
 
     /**
-     * Cek apakah Google Drive API siap digunakan.
+     * Cek apakah integrasi Google Drive siap digunakan.
      */
     public function isConfigured(): bool
     {
-        return $this->isConfigured && $this->driveService !== null;
+        return $this->isConfigured || ($this->driveService !== null) || !empty($this->webAppUrl);
     }
 
     /**
@@ -85,57 +90,77 @@ class GoogleDriveService
      */
     public function uploadFile(string $localFilePath, string $fileName, string $type = 'fisik'): ?array
     {
-        if (!$this->isConfigured()) {
+        if (!file_exists($localFilePath)) {
             return null;
         }
 
-        try {
-            if (!file_exists($localFilePath)) {
-                return null;
-            }
+        $folderId = $this->getFolderId($type);
+        $mimeType = mime_content_type($localFilePath) ?: 'image/jpeg';
+        $content = file_get_contents($localFilePath);
 
-            $folderId = $this->getFolderId($type);
-            $mimeType = mime_content_type($localFilePath) ?: 'image/jpeg';
-
-            $fileMetadata = new DriveFile([
-                'name' => $fileName,
-                'parents' => [$folderId],
-            ]);
-
-            $content = file_get_contents($localFilePath);
-
-            $file = $this->driveService->files->create($fileMetadata, [
-                'data' => $content,
-                'mimeType' => $mimeType,
-                'uploadType' => 'multipart',
-                'fields' => 'id, name, webViewLink, webContentLink',
-            ]);
-
-            // Set permission agar file bisa dilihat oleh publik jika didukung
+        // 1. Metode Google Apps Script Web App (Jika URL Web App disediakan di .env)
+        if (!empty($this->webAppUrl)) {
             try {
-                $permission = new \Google\Service\Drive\Permission([
-                    'type' => 'anyone',
-                    'role' => 'reader',
+                $response = Http::timeout(15)->post($this->webAppUrl, [
+                    'folder_id' => $folderId,
+                    'file_name' => $fileName,
+                    'file_data' => base64_encode($content),
+                    'mime_type' => $mimeType,
                 ]);
-                $this->driveService->permissions->create($file->id, $permission);
-            } catch (Throwable $permError) {
-                // Abaikan jika service account tidak punya akses edit permission
+
+                if ($response->successful()) {
+                    $json = $response->json();
+                    return [
+                        'file_id' => $json['id'] ?? null,
+                        'name' => $fileName,
+                        'folder_id' => $folderId,
+                        'web_view_link' => $json['url'] ?? $json['webViewLink'] ?? "https://drive.google.com/drive/folders/{$folderId}",
+                    ];
+                }
+            } catch (Throwable $e) {
+                Log::error('GoogleDriveService (WebApp): Gagal upload: ' . $e->getMessage());
             }
-
-            $fileId = $file->id;
-            $webViewLink = $file->webViewLink ?? "https://drive.google.com/file/d/{$fileId}/view";
-            $directLink = "https://drive.google.com/thumbnail?id={$fileId}&sz=w1000";
-
-            return [
-                'file_id' => $fileId,
-                'name' => $fileName,
-                'folder_id' => $folderId,
-                'web_view_link' => $webViewLink,
-                'direct_link' => $directLink,
-            ];
-        } catch (Throwable $e) {
-            Log::error('GoogleDriveService: Gagal upload file ke Google Drive: ' . $e->getMessage());
-            return null;
         }
+
+        // 2. Metode Google Service Account API
+        if ($this->driveService !== null) {
+            try {
+                $fileMetadata = new DriveFile([
+                    'name' => $fileName,
+                    'parents' => [$folderId],
+                ]);
+
+                $file = $this->driveService->files->create($fileMetadata, [
+                    'data' => $content,
+                    'mimeType' => $mimeType,
+                    'uploadType' => 'multipart',
+                    'fields' => 'id, name, webViewLink, webContentLink',
+                ]);
+
+                try {
+                    $permission = new \Google\Service\Drive\Permission([
+                        'type' => 'anyone',
+                        'role' => 'reader',
+                    ]);
+                    $this->driveService->permissions->create($file->id, $permission);
+                } catch (Throwable $permError) {
+                    // Abaikan jika permission tidak didukung
+                }
+
+                $fileId = $file->id;
+                $webViewLink = $file->webViewLink ?? "https://drive.google.com/file/d/{$fileId}/view";
+
+                return [
+                    'file_id' => $fileId,
+                    'name' => $fileName,
+                    'folder_id' => $folderId,
+                    'web_view_link' => $webViewLink,
+                ];
+            } catch (Throwable $e) {
+                Log::error('GoogleDriveService (ServiceAccount): Gagal upload: ' . $e->getMessage());
+            }
+        }
+
+        return null;
     }
 }
