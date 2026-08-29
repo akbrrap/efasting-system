@@ -166,14 +166,20 @@
           }
 
           res.data.forEach(item => {
+            const assetNo = item.nomor_asset || item.id || '';
+            const assetDesc = item.deskripsi_asset || item.desc || '';
+            const assetSn = item.serial_number || item.sn || '-';
+            const assetQty = item.qty_buku !== undefined ? item.qty_buku : (item.qty || 0);
+            const nbv = item.nbv !== undefined ? item.nbv : (item.raw_nbv || 0);
+
             const row = document.createElement('div');
             row.className = 'dropdown-item-row';
             row.innerHTML = `
               <div class="dropdown-item-header">
-                <i class="fa-solid fa-box"></i> ${item.nomor_asset} &bull; ${item.deskripsi_asset}
+                <i class="fa-solid fa-box"></i> <strong>${assetNo}</strong> &bull; ${assetDesc}
               </div>
               <div class="dropdown-item-sub">
-                SN: ${item.serial_number || '-'} | Qty Buku: ${item.qty_buku || 0} | NBV: Rp ${formatRibuan(item.nbv || 0)}
+                SN: ${assetSn} | Qty Buku: ${assetQty} | NBV: Rp ${formatRibuan(nbv)}
               </div>
             `;
             row.onclick = () => pilihAsetRet(item);
@@ -194,11 +200,16 @@
   }
 
   function pilihAsetRet(item) {
-    document.getElementById('searchRetInput').value = `${item.nomor_asset} - ${item.deskripsi_asset}`;
-    document.getElementById('retAssetNo').value = item.nomor_asset;
-    document.getElementById('retDesc').value = item.deskripsi_asset || '';
-    document.getElementById('retQtyCurrent').value = item.qty_buku || 0;
-    document.getElementById('retNbvCurrent').value = `Rp ${formatRibuan(item.nbv || 0)}`;
+    const assetNo = item.nomor_asset || item.id || '';
+    const assetDesc = item.deskripsi_asset || item.desc || '';
+    const assetQty = item.qty_buku !== undefined ? item.qty_buku : (item.qty || 0);
+    const nbv = item.nbv !== undefined ? item.nbv : (item.raw_nbv || 0);
+
+    document.getElementById('searchRetInput').value = `${assetNo} - ${assetDesc}`;
+    document.getElementById('retAssetNo').value = assetNo;
+    document.getElementById('retDesc').value = assetDesc;
+    document.getElementById('retQtyCurrent').value = assetQty;
+    document.getElementById('retNbvCurrent').value = `Rp ${formatRibuan(nbv)}`;
 
     const dropdown = document.getElementById('dropdownRetirement');
     if (dropdown) dropdown.style.display = 'none';

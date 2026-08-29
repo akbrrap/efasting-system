@@ -338,8 +338,8 @@ class AssetController extends Controller
      */
     public function apiSearch(Request $request): JsonResponse
     {
-        $kategori = strtoupper($request->input('kategori', 'ALL'));
-        $query = trim($request->input('query', ''));
+        $kategori = strtoupper($request->input('kategori') ?? $request->input('type') ?? 'ALL');
+        $query = trim($request->input('query') ?? $request->input('q') ?? $request->input('search') ?? '');
 
         $results = [];
 
@@ -349,21 +349,34 @@ class AssetController extends Controller
                 $intQuery->where(function ($q) use ($query) {
                     $q->where('nomor_asset', 'like', "%{$query}%")
                         ->orWhere('deskripsi_asset', 'like', "%{$query}%")
-                        ->orWhere('serial_number', 'like', "%{$query}%");
+                        ->orWhere('serial_number', 'like', "%{$query}%")
+                        ->orWhere('cost_center', 'like', "%{$query}%")
+                        ->orWhere('allocation', 'like', "%{$query}%");
                 });
             }
             $intAssets = $intQuery->limit(50)->get()->map(function ($item) {
                 return [
                     'id' => $item->nomor_asset,
+                    'nomor_asset' => $item->nomor_asset,
                     'desc' => $item->deskripsi_asset,
+                    'deskripsi_asset' => $item->deskripsi_asset,
                     'sn' => $item->serial_number ?? '-',
+                    'serial_number' => $item->serial_number ?? '-',
                     'qty' => $item->qty_buku,
+                    'qty_buku' => $item->qty_buku,
+                    'book_qty' => $item->qty_buku,
+                    'cost_center' => $item->cost_center ?? '-',
+                    'allocation' => $item->allocation ?? '-',
                     'cap_date' => $item->cap_date ? $item->cap_date->format('d/m/Y') : '-',
-                    'nbv' => number_format($item->nbv, 0, ',', '.'),
+                    'nilai_perolehan' => (float) $item->nilai_perolehan,
+                    'akumulasi_depresiasi' => (float) $item->akumulasi_depresiasi,
+                    'nbv' => (float) $item->nbv,
+                    'formatted_nbv' => number_format($item->nbv, 0, ',', '.'),
                     'raw_nbv' => (float) $item->nbv,
                     'raw_np' => (float) $item->nilai_perolehan,
                     'raw_ad' => (float) $item->akumulasi_depresiasi,
                     'tipe' => 'INTERNAL',
+                    'kategori_db' => 'INTERNAL',
                 ];
             });
             $results = array_merge($results, $intAssets->toArray());
@@ -375,21 +388,34 @@ class AssetController extends Controller
                 $extQuery->where(function ($q) use ($query) {
                     $q->where('nomor_asset', 'like', "%{$query}%")
                         ->orWhere('deskripsi_asset', 'like', "%{$query}%")
-                        ->orWhere('serial_number', 'like', "%{$query}%");
+                        ->orWhere('serial_number', 'like', "%{$query}%")
+                        ->orWhere('cost_center', 'like', "%{$query}%")
+                        ->orWhere('allocation', 'like', "%{$query}%");
                 });
             }
             $extAssets = $extQuery->limit(50)->get()->map(function ($item) {
                 return [
                     'id' => $item->nomor_asset,
+                    'nomor_asset' => $item->nomor_asset,
                     'desc' => $item->deskripsi_asset,
+                    'deskripsi_asset' => $item->deskripsi_asset,
                     'sn' => $item->serial_number ?? '-',
+                    'serial_number' => $item->serial_number ?? '-',
                     'qty' => $item->qty_buku,
+                    'qty_buku' => $item->qty_buku,
+                    'book_qty' => $item->qty_buku,
+                    'cost_center' => $item->cost_center ?? '-',
+                    'allocation' => $item->allocation ?? '-',
                     'cap_date' => $item->cap_date ? $item->cap_date->format('d/m/Y') : '-',
-                    'nbv' => number_format($item->nbv, 0, ',', '.'),
+                    'nilai_perolehan' => (float) $item->nilai_perolehan,
+                    'akumulasi_depresiasi' => (float) $item->akumulasi_depresiasi,
+                    'nbv' => (float) $item->nbv,
+                    'formatted_nbv' => number_format($item->nbv, 0, ',', '.'),
                     'raw_nbv' => (float) $item->nbv,
                     'raw_np' => (float) $item->nilai_perolehan,
                     'raw_ad' => (float) $item->akumulasi_depresiasi,
                     'tipe' => 'EXTERNAL',
+                    'kategori_db' => 'EXTERNAL',
                 ];
             });
             $results = array_merge($results, $extAssets->toArray());

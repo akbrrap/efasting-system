@@ -180,14 +180,20 @@
           }
 
           res.data.forEach(item => {
+            const assetNo = item.nomor_asset || item.id || '';
+            const assetDesc = item.deskripsi_asset || item.desc || '';
+            const assetSn = item.serial_number || item.sn || '-';
+            const np = item.nilai_perolehan !== undefined ? item.nilai_perolehan : (item.raw_np || 0);
+            const nbv = item.nbv !== undefined ? item.nbv : (item.raw_nbv || 0);
+
             const row = document.createElement('div');
             row.className = 'dropdown-item-row';
             row.innerHTML = `
               <div class="dropdown-item-header">
-                <i class="fa-solid fa-cube"></i> ${item.nomor_asset} &bull; ${item.deskripsi_asset}
+                <i class="fa-solid fa-cube"></i> <strong>${assetNo}</strong> &bull; ${assetDesc}
               </div>
               <div class="dropdown-item-sub">
-                SN: ${item.serial_number || '-'} | Nilai: Rp ${formatRibuan(item.nilai_perolehan || 0)} | NBV: Rp ${formatRibuan(item.nbv || 0)}
+                SN: ${assetSn} | Nilai: Rp ${formatRibuan(np)} | NBV: Rp ${formatRibuan(nbv)}
               </div>
             `;
             row.onclick = () => pilihAsetAdj(item);
@@ -208,14 +214,21 @@
   }
 
   function pilihAsetAdj(item) {
-    document.getElementById('searchAdjInput').value = `${item.nomor_asset} - ${item.deskripsi_asset}`;
-    document.getElementById('adjAssetNo').value = item.nomor_asset;
-    document.getElementById('adjDesc').value = item.deskripsi_asset || '';
-    document.getElementById('adjSn').value = item.serial_number || '';
-    document.getElementById('adjQty').value = item.qty_buku || 0;
+    const assetNo = item.nomor_asset || item.id || '';
+    const assetDesc = item.deskripsi_asset || item.desc || '';
+    const assetSn = (item.serial_number && item.serial_number !== '-') ? item.serial_number : (item.sn && item.sn !== '-' ? item.sn : '');
+    const assetQty = item.qty_buku !== undefined ? item.qty_buku : (item.qty || 0);
+    const np = item.nilai_perolehan !== undefined ? item.nilai_perolehan : (item.raw_np || 0);
+    const ad = item.akumulasi_depresiasi !== undefined ? item.akumulasi_depresiasi : (item.raw_ad || 0);
 
-    document.getElementById('adjNilai').value = formatRibuan(item.nilai_perolehan || 0);
-    document.getElementById('adjDepresiasi').value = formatRibuan(item.akumulasi_depresiasi || 0);
+    document.getElementById('searchAdjInput').value = `${assetNo} - ${assetDesc}`;
+    document.getElementById('adjAssetNo').value = assetNo;
+    document.getElementById('adjDesc').value = assetDesc;
+    document.getElementById('adjSn').value = assetSn;
+    document.getElementById('adjQty').value = assetQty;
+
+    document.getElementById('adjNilai').value = formatRibuan(np);
+    document.getElementById('adjDepresiasi').value = formatRibuan(ad);
     hitungNBVAdj();
 
     const dropdown = document.getElementById('dropdownAdj');

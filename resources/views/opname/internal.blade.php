@@ -212,14 +212,20 @@
           }
 
           res.data.forEach(item => {
+            const assetNo = item.nomor_asset || item.id || '';
+            const assetDesc = item.deskripsi_asset || item.desc || '';
+            const assetSn = item.serial_number || item.sn || '-';
+            const assetQty = item.qty_buku !== undefined ? item.qty_buku : (item.qty || 0);
+            const assetLoc = item.allocation || item.cost_center || '-';
+
             const row = document.createElement('div');
             row.className = 'dropdown-item-row';
             row.innerHTML = `
               <div class="dropdown-item-header">
-                <i class="fa-solid fa-cube"></i> ${item.nomor_asset} &bull; ${item.deskripsi_asset}
+                <i class="fa-solid fa-cube"></i> <strong>${assetNo}</strong> &bull; ${assetDesc}
               </div>
               <div class="dropdown-item-sub">
-                SN: ${item.serial_number || '-'} | Qty Buku: ${item.qty_buku || 0} | Lokasi: ${item.allocation || '-'}
+                SN: ${assetSn} | Qty Buku: ${assetQty} | Lokasi: ${assetLoc}
               </div>
             `;
             row.onclick = () => pilihAset(item);
@@ -240,13 +246,19 @@
   }
 
   function pilihAset(item) {
-    document.getElementById('searchInput').value = `${item.nomor_asset} - ${item.deskripsi_asset}`;
-    document.getElementById('assetNo').value = item.nomor_asset;
-    document.getElementById('assetDesc').value = item.deskripsi_asset || '';
-    document.getElementById('assetSn').value = item.serial_number || '';
-    document.getElementById('qtyBuku').value = item.qty_buku || 0;
-    document.getElementById('qtyFisik').value = item.qty_buku || 1;
-    document.getElementById('lokasi').value = item.allocation || '';
+    const assetNo = item.nomor_asset || item.id || '';
+    const assetDesc = item.deskripsi_asset || item.desc || '';
+    const assetSn = (item.serial_number && item.serial_number !== '-') ? item.serial_number : (item.sn && item.sn !== '-' ? item.sn : '');
+    const assetQty = item.qty_buku !== undefined ? item.qty_buku : (item.qty || 0);
+    const assetLoc = (item.allocation && item.allocation !== '-') ? item.allocation : (item.cost_center || '');
+
+    document.getElementById('searchInput').value = `${assetNo} - ${assetDesc}`;
+    document.getElementById('assetNo').value = assetNo;
+    document.getElementById('assetDesc').value = assetDesc;
+    document.getElementById('assetSn').value = assetSn;
+    document.getElementById('qtyBuku').value = assetQty;
+    document.getElementById('qtyFisik').value = assetQty || 1;
+    document.getElementById('lokasi').value = assetLoc;
 
     const dropdown = document.getElementById('customDropdown');
     if (dropdown) dropdown.style.display = 'none';
