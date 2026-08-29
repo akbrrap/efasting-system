@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="csrf-token" content="{{ csrf_token() }}">
-  <title>@yield('title', 'Dashboard') - eFasting Enterprise</title>
+  <title>@yield('title', 'Dashboard') - eFasting System</title>
 
   <!-- PWA & Mobile Meta Tags -->
   <meta name="mobile-web-app-capable" content="yes">
@@ -43,7 +43,7 @@
 
     <!-- 2. Main Wrapper (Topbar + Workspace) -->
     <div class="main-wrapper">
-      @include('partials.header', ['title' => trim($__env->yieldContent('title', 'eFasting Enterprise'))])
+      @include('partials.header', ['title' => trim($__env->yieldContent('title', 'eFasting System'))])
 
       <main class="content-workspace">
         @yield('content')

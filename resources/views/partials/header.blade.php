@@ -13,7 +13,7 @@
     </button>
 
     <div class="page-breadcrumb">
-      <span class="breadcrumb-label">eFasting System &bull; Enterprise Edition</span>
+      <span class="breadcrumb-label">eFasting System</span>
       <h1 class="page-title-main">{{ $title }}</h1>
     </div>
   </div>

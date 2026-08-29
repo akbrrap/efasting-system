@@ -12,7 +12,7 @@
       <i class="fa-solid fa-boxes-stacked"></i>
     </div>
     <div class="brand-info">
-      <h2>eFasting Pro</h2>
+      <h2>eFasting System</h2>
       <span>Asset Management</span>
     </div>
     <!-- Mobile Close Button -->
@@ -21,25 +21,23 @@
     </button>
   </div>
 
-  <!-- Navigation Links -->
+  <!-- Navigation Links with Exact Original Menu Names -->
   <nav class="sidebar-nav">
-    <div class="nav-section-title">Menu Utama</div>
+    <div class="nav-section-title">Menu Opname</div>
 
     <!-- 1. Home Dashboard -->
     <a href="{{ route('dashboard') }}" class="nav-item {{ $currentRoute === 'dashboard' ? 'active' : '' }}">
-      <i class="fa-solid fa-chart-pie nav-icon"></i>
-      <span>Executive Dashboard</span>
+      <i class="fa-solid fa-house nav-icon"></i>
+      <span>Home Dashboard</span>
     </a>
 
     <!-- 2. Fixed Assets Stock Opname (Internal & External) -->
     @if ($role === 'ADMINISTRATOR' || $role === 'INTERNAL' || $role === 'EKSTERNAL')
-      <div class="nav-section-title">Operasional Opname</div>
-      
       <div class="nav-group {{ str_starts_with($currentRoute, 'opname.') ? 'open' : '' }}" id="groupOpname">
         <div class="nav-group-header" onclick="toggleSubmenu('groupOpname', this)">
           <div style="display: flex; align-items: center; gap: 12px;">
-            <i class="fa-solid fa-clipboard-check nav-icon"></i>
-            <span>Stock Opname Fisik</span>
+            <i class="fa-solid fa-boxes-packing nav-icon"></i>
+            <span>Fixed Assets Stock Opname</span>
           </div>
           <i class="fa-solid fa-chevron-down nav-chevron"></i>
         </div>
@@ -49,7 +47,7 @@
             <li>
               <a href="{{ route('opname.internal') }}" class="nav-subitem {{ $currentRoute === 'opname.internal' ? 'active' : '' }}">
                 <i class="fa-solid fa-industry" style="font-size: 11px;"></i>
-                <span>Opname Internal (Pabrik)</span>
+                <span>Stock opname Internal Assets</span>
               </a>
             </li>
           @endif
@@ -57,8 +55,8 @@
           @if ($role === 'ADMINISTRATOR' || $role === 'EKSTERNAL')
             <li>
               <a href="{{ route('opname.external') }}" class="nav-subitem {{ $currentRoute === 'opname.external' ? 'active' : '' }}">
-                <i class="fa-solid fa-truck-ramp-box" style="font-size: 11px;"></i>
-                <span>Opname Eksternal (Vendor)</span>
+                <i class="fa-solid fa-truck-fast" style="font-size: 11px;"></i>
+                <span>Stock Opname External Assets</span>
               </a>
             </li>
           @endif
@@ -68,13 +66,11 @@
 
     <!-- 3. Master Assets Database (Khusus Administrator) -->
     @if ($role === 'ADMINISTRATOR')
-      <div class="nav-section-title">Kelola Master Asset</div>
-
       <div class="nav-group {{ str_starts_with($currentRoute, 'asset.') ? 'open' : '' }}" id="groupMaster">
         <div class="nav-group-header" onclick="toggleSubmenu('groupMaster', this)">
           <div style="display: flex; align-items: center; gap: 12px;">
-            <i class="fa-solid fa-server nav-icon"></i>
-            <span>Master Database</span>
+            <i class="fa-solid fa-database nav-icon"></i>
+            <span>Master Assets Database</span>
           </div>
           <i class="fa-solid fa-chevron-down nav-chevron"></i>
         </div>
@@ -82,44 +78,43 @@
         <ul class="nav-sublist">
           <li>
             <a href="{{ route('asset.index') }}" class="nav-subitem {{ $currentRoute === 'asset.index' ? 'active' : '' }}">
-              <i class="fa-solid fa-table-list" style="font-size: 11px;"></i>
-              <span>Daftar Master Aset</span>
+              <i class="fa-solid fa-list" style="font-size: 11px;"></i>
+              <span>Fixed Asset List</span>
             </a>
           </li>
           <li>
             <a href="{{ route('asset.create') }}" class="nav-subitem {{ $currentRoute === 'asset.create' ? 'active' : '' }}">
-              <i class="fa-solid fa-file-circle-plus" style="font-size: 11px;"></i>
-              <span>Mass Asset Addition</span>
+              <i class="fa-solid fa-folder-plus" style="font-size: 11px;"></i>
+              <span>Fixed Asset Addition</span>
             </a>
           </li>
           <li>
             <a href="{{ route('asset.adjustment') }}" class="nav-subitem {{ $currentRoute === 'asset.adjustment' ? 'active' : '' }}">
               <i class="fa-solid fa-sliders" style="font-size: 11px;"></i>
-              <span>Mass Adjustment</span>
+              <span>Asset Adjustment</span>
             </a>
           </li>
           <li>
             <a href="{{ route('asset.retirement') }}" class="nav-subitem {{ $currentRoute === 'asset.retirement' ? 'active' : '' }}">
               <i class="fa-solid fa-trash-can" style="font-size: 11px;"></i>
-              <span>Mass Retirement</span>
+              <span>Fixed Asset Retirements</span>
             </a>
           </li>
         </ul>
       </div>
     @endif
 
-    <!-- 4. Laporan & Audit Trail (Administrator & Internal) -->
+    <!-- 4. Fixed Asset Audit Trail -->
     @if ($role === 'ADMINISTRATOR' || $role === 'INTERNAL')
-      <div class="nav-section-title">Audit & Pelaporan</div>
-
       <a href="{{ route('opname.audit_trail') }}" class="nav-item {{ $currentRoute === 'opname.audit_trail' ? 'active' : '' }}">
         <i class="fa-solid fa-clock-rotate-left nav-icon"></i>
         <span>Fixed Asset Audit Trail</span>
       </a>
 
+      <!-- 5. Reports -->
       <a href="{{ route('reports.index') }}" class="nav-item {{ $currentRoute === 'reports.index' ? 'active' : '' }}">
         <i class="fa-solid fa-file-excel nav-icon"></i>
-        <span>Download Laporan Excel</span>
+        <span>Reports</span>
       </a>
     @endif
   </nav>
@@ -139,7 +134,7 @@
     <!-- Quick Logout Button -->
     <form method="POST" action="{{ route('logout') }}" id="logoutFormSidebar" style="margin: 0;">
       @csrf
-      <button type="submit" class="btn-sidebar-logout" title="Keluar / Logout" onclick="return confirm('Apakah Anda yakin ingin keluar dari sistem?')">
+      <button type="submit" class="btn-sidebar-logout" title="Logout" onclick="return confirm('Apakah Anda yakin ingin keluar dari sistem?')">
         <i class="fa-solid fa-arrow-right-from-bracket"></i>
       </button>
     </form>
